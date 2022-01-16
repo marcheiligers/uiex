@@ -26,7 +26,7 @@ class Publisher
   include Observable
 
   def publish(event)
-    puts "Event #{event.name} from #{event.target.inspect}"
+    puts "Event #{event.name} from #{event.target.inspect}" if $state.debug
     notify_observers(event, true)
   end
 end

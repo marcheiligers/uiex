@@ -1,4 +1,4 @@
-class UiSoundMAnager
+class UiSoundManager
   def initialize
     $publisher.attach_observer(self)
   end
@@ -9,6 +9,8 @@ class UiSoundMAnager
       play(:ui_focus)
     when :pressed
       play(:ui_press)
+    when :sound_volume_changed
+      play(:volume_changed)
     end
   end
 
@@ -17,4 +19,4 @@ class UiSoundMAnager
   end
 end
 
-UiSoundMAnager.new
+UiSoundManager.new
