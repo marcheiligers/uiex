@@ -7,7 +7,7 @@ class MenuButton < Window
     super(x: x, y: y, w: w, h: h, text: text)
 	end
 
-	def react
+	def handle_inputs
 		if $args.inputs.mouse.inside_rect?(relative_rect)
 			if !@pointer_inside
 				notify_observers(Event.new(:pointer_enter, self))
@@ -29,7 +29,7 @@ class MenuButton < Window
 		end
 	end
 
-	def to_p
+	def to_primitives
 		[
 			relative_rect.solid!(focussed? ? FOCUSSED : NORMAL),
 			relative_center.label!(TEXT.merge({ text: text }))
@@ -38,10 +38,8 @@ class MenuButton < Window
 end
 
 class Menu < Window # VerticalMenu
-  include Easing
-
-	def initialize
-    super(x: 40, y: 1020, w: 220, h: 300, text: 'Menu')
+	def initialize(x:)
+    super(x: x, y: 300, w: 220, h: 300, text: 'Menu')
 		@debounce_input = DebounceInput.new(up: :up, down: :down)
 	end
 
@@ -50,19 +48,6 @@ class Menu < Window # VerticalMenu
 		button.attach_observer(self)
     children.add(button)
 	end
-
-  def appear
-    @appear_ticks = 0
-  end
-
-  def to_p
-    if !@appear_ticks.nil? && @appear_ticks < 60
-      @appear_ticks += 1
-      @y = (1 - ease_out_elastic(@appear_ticks, 60)) * h + 300
-    end
-
-    super
-  end
 
 	def observe(event)
 		case event.name
@@ -74,8 +59,8 @@ class Menu < Window # VerticalMenu
 		end
 	end
 
-	def react
-		children.each(&:react)
+	def handle_inputs
+		children.each(&:handle_inputs)
 
 		case @debounce_input.debounce
 		when :up
