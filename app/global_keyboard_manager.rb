@@ -3,7 +3,7 @@ class GlobalKeyboardManager
     @debounce_input = DebounceInput.new({ up: :up, right: :up, down: :down, left: :down }, 20, 1, 1)
   end
 
-  def react
+  def handle_inputs
     if $args.inputs.keyboard.key_held.m
       case @debounce_input.debounce
       when :up

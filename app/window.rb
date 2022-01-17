@@ -3,11 +3,12 @@ class Window
   include Observable
 
   attr_accessor :x, :y, :w, :h, :r, :g, :b, :text
-  attr_reader :parent, :children
+  attr_reader :id, :parent, :children
 
-  @@window = 0
+  @@window_id = 0
 
-  def initialize(x: 0, y: 0, w: 0, h: 0, r: 240, g: 240, b: 240, text: "Window#{@@window += 1}")
+  def initialize(x: 0, y: 0, w: 0, h: 0, r: 240, g: 240, b: 240, text: "Window#{@@window_id += 1}", visible: true)
+    @id = @@window_id
     @x = x
     @y = y
     @w = w
@@ -18,7 +19,10 @@ class Window
     @text = text
 
     @children = WindowCollection.new(self)
+
     @focussed = false
+    @visible = visible
+
     @pointer_inside = false
   end
 
@@ -28,6 +32,7 @@ class Window
     @parent = new_parent
   end
 
+  # Focus
   def focussed?
     @focussed
   end
@@ -54,6 +59,19 @@ class Window
     @children.index(&:focussed?)
   end
 
+  # Visibility TODO: events
+  def visible?
+    @visible
+  end
+
+  def show
+    @visible = true
+  end
+
+  def hide
+    @visible = false
+  end
+
   def relative_x
     @x + @parent&.relative_x.to_i
   end
@@ -70,8 +88,10 @@ class Window
     { x: relative_x + @w / 2, y: relative_y + @h / 2 }
   end
 
-  def to_p
-    [relative_rect.solid!(color)] + @children.to_p
+  def to_primitives
+    return unless visible?
+
+    [relative_rect.solid!(color)] + @children.to_primitives
   end
 
   def rect
@@ -89,6 +109,9 @@ class Window
   def inspect
     "#<#{self.class.name} #{text}>"
   end
+
+  def handle_inputs
+  end
 end
 
 class WindowCollection
@@ -96,18 +119,22 @@ class WindowCollection
 
   def_delegators :@collection, :each, :map, :length, :index, :[]
 
-  def initialize(owner)
+  def initialize(owner = nil)
     @owner = owner
     @collection = []
   end
 
   def add(child)
     @collection.push(child)
-    child.parent = @owner
+    child.parent = @owner if @owner
     child
   end
 
-  def to_p
-    map(&:to_p)
+  def handle_inputs
+    each(&:handle_inputs)
+  end
+
+  def to_primitives
+    map(&:to_primitives)
   end
 end
