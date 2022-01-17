@@ -1,42 +1,3 @@
-class MenuButton < Window
-	FOCUSSED = { r: 255, g: 0, b: 0 }
-	NORMAL = { r: 128, g: 128, b: 128 }
-	TEXT = { r: 255, g: 255, b: 255, vertical_alignment_enum: 1, alignment_enum: 1 }
-
-	def initialize(x, y, w, h, text)
-    super(x: x, y: y, w: w, h: h, text: text)
-	end
-
-	def handle_inputs
-		if $args.inputs.mouse.inside_rect?(relative_rect)
-			if !@pointer_inside
-				notify_observers(Event.new(:pointer_enter, self))
-				@pointer_inside = true
-			end
-		else
-			if @pointer_inside
-				notify_observers(Event.new(:pointer_leave, self))
-				@pointer_inside = false
-			end
-		end
-
-		if focussed? && (result = input_accepted?)
-      if result.is_a?(GTK::MousePoint)
-        notify_observers(Event.new(:pressed, self)) if result.inside_rect?(relative_rect)
-      else
-  			notify_observers(Event.new(:pressed, self))
-      end
-		end
-	end
-
-	def to_primitives
-		[
-			relative_rect.solid!(focussed? ? FOCUSSED : NORMAL),
-			relative_center.label!(TEXT.merge({ text: text }))
-		]
-	end
-end
-
 class Menu < Window # VerticalMenu
 	def initialize(x:)
     super(x: x, y: 300, w: 220, h: 300, text: 'Menu')
@@ -44,7 +5,7 @@ class Menu < Window # VerticalMenu
 	end
 
 	def add_button(text)
-		button = MenuButton.new(10, 250 - children.length * 50, 200, 40, text)
+		button = Button.new(x: 10, y: 250 - children.length * 50, w: 200, h: 40, text: text)
 		button.attach_observer(self)
     children.add(button)
 	end

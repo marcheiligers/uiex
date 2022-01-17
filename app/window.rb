@@ -2,27 +2,26 @@ class Window
   include InputEvents
   include Observable
 
-  attr_accessor :x, :y, :w, :h, :r, :g, :b, :text
+  attr_accessor :x, :y, :w, :h, :color, :text
   attr_reader :id, :parent, :children
+
+  WINDOW_ARGS = %i[x y w h color text visible]
 
   @@window_id = 0
 
-  def initialize(x: 0, y: 0, w: 0, h: 0, r: 240, g: 240, b: 240, text: "Window#{@@window_id += 1}", visible: true)
+  def initialize(**args)
     @id = @@window_id
-    @x = x
-    @y = y
-    @w = w
-    @h = h
-    @r = r
-    @g = g
-    @b = b
-    @text = text
+    @x = args[:x] || 0
+    @y = args[:y] || 0
+    @w = args[:w] || 0
+    @h = args[:h] || 0
+    @color = args[:color] || Color::LIGHT_GREY
+    @text = args[:text] || "Window#{@@window_id += 1}"
+    @visible = args[:visible].nil? || true
 
     @children = WindowCollection.new(self)
 
     @focussed = false
-    @visible = visible
-
     @pointer_inside = false
   end
 
@@ -91,7 +90,7 @@ class Window
   def to_primitives
     return unless visible?
 
-    [relative_rect.solid!(color)] + @children.to_primitives
+    [relative_rect.solid!(color.to_h)] + @children.to_primitives
   end
 
   def rect
@@ -100,10 +99,6 @@ class Window
 
   def relative_rect
     { x: relative_x, y: relative_y, w: @w, h: @h }
-  end
-
-  def color
-    { r: r, g: g, b: b }
   end
 
   def inspect
