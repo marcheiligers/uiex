@@ -1,4 +1,5 @@
 require 'app/forwardable.rb'
+require 'app/draggable.rb'
 require 'app/easing.rb'
 require 'app/color.rb'
 

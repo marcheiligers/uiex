@@ -39,3 +39,8 @@ class Button < Window
     ]
   end
 end
+
+class DraggableButton < Button
+  include Draggable
+end
+

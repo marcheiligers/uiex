@@ -29,6 +29,8 @@ def defaults
   $windows.add(WipeReveal.new(make_menu(520), animation_length: 30))
   $windows.add(FuturisticTvReveal.new(make_menu(760), animation_length: 30))
   $windows.add(ZoomReveal.new(make_menu(1000), animation_length: 20))
+
+  $windows.add(DraggableButton.new(x: 400, y: 400, w: 200, h: 200, text: "Drag Me"))
 end
 
 def make_menu(x)

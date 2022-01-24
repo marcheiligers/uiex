@@ -31,6 +31,10 @@ class Window
     @parent = new_parent
   end
 
+  # Inputs
+  def handle_inputs
+  end
+
   # Focus
   def focussed?
     @focussed
