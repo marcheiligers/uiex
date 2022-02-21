@@ -19,7 +19,7 @@ end
 
 def defaults
   $state.debug = true
-  $state.sound.volume = 100
+  $state.sound.volume = 50
   $state.sound.enabled = true
 
   $windows = WindowCollection.new
@@ -30,7 +30,15 @@ def defaults
   $windows.add(FuturisticTvReveal.new(make_menu(760), animation_length: 30))
   $windows.add(ZoomReveal.new(make_menu(1000), animation_length: 20))
 
-  $windows.add(DraggableButton.new(x: 400, y: 400, w: 200, h: 200, text: "Drag Me"))
+  $windows.add(DraggableButton.new(x: 400, y: 400, w: 200, h: 200, text: 'Drag Me'))
+
+  slider = $windows.add(Slider.new(x: 100, y: 100, w: 400, h: 40, text: 50))
+  slider.attach_observer(self) do |event|
+    $publisher.publish(Event.new(:sound_volume_set, slider)) if event.name == :changed
+  end
+  $publisher.attach_observer(slider) do |event|
+    slider.value = $state.sound.volume if event.name == :sound_volume_changed && event.source != slider
+  end
 end
 
 def make_menu(x)

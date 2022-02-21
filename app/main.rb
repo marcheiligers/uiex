@@ -1,4 +1,6 @@
 require 'app/forwardable.rb'
+require 'app/focusable.rb'
+require 'app/hoverable.rb'
 require 'app/draggable.rb'
 require 'app/easing.rb'
 require 'app/color.rb'
@@ -12,6 +14,7 @@ require 'app/window.rb'
 require 'app/reveal.rb'
 require 'app/button.rb'
 require 'app/menu.rb'
+require 'app/slider.rb'
 
 require 'app/tick.rb'
 

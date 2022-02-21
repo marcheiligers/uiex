@@ -14,5 +14,7 @@ class Color
   WHITE = Color.new(255, 255, 255)
   LIGHT_GREY = Color.new(240, 240, 240)
   GREY = Color.new(128, 128, 128)
+  DARK_GREY = Color.new(32, 32, 32)
   BLACK = Color.new(0, 0, 0)
+  RED = Color.new(128, 0, 0)
 end

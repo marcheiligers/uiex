@@ -1,8 +1,15 @@
-# TODO: touch
 module InputEvents
-  def input_accepted?
+  def input_accepted?(rect = nil)
     inputs = $args.inputs
-    inputs.mouse.click || inputs.controller_one.key_up.x || inputs.keyboard.key_up.enter || inputs.keyboard.key_up.space
+    return true if inputs.controller_one.key_up.x || inputs.keyboard.key_up.enter || inputs.keyboard.key_up.space
+
+    input_pressed?(rect)
+  end
+
+  def input_pressed?(rect = nil)
+    if rect && (click = $args.inputs.mouse.click) # TODO: touch
+      click.inside_rect?(relative_rect)
+    end
   end
 end
 

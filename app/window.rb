@@ -1,6 +1,7 @@
 class Window
   include InputEvents
   include Observable
+  include Focusable
 
   attr_accessor :x, :y, :w, :h, :color, :text
   attr_reader :id, :parent, :children
@@ -20,9 +21,6 @@ class Window
     @visible = args[:visible].nil? || true
 
     @children = WindowCollection.new(self)
-
-    @focussed = false
-    @pointer_inside = false
   end
 
   def parent=(new_parent)
@@ -33,33 +31,7 @@ class Window
 
   # Inputs
   def handle_inputs
-  end
-
-  # Focus
-  def focussed?
-    @focussed
-  end
-
-  def focus
-    unless @focussed
-      notify_observers(Event.new(:focussed, self))
-      @focussed = true
-    end
-  end
-
-  def blur
-    if @focussed
-      notify_observers(Event.new(:blurred, self))
-      @focussed = false
-    end
-  end
-
-  def blur_children(except = nil)
-    @children.each { |child| child.blur unless child == except }
-  end
-
-  def focussed_child_index
-    @children.index(&:focussed?)
+    children.handle_inputs
   end
 
   # Visibility TODO: events
@@ -107,9 +79,6 @@ class Window
 
   def inspect
     "#<#{self.class.name} #{text}>"
-  end
-
-  def handle_inputs
   end
 end
 

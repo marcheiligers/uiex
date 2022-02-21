@@ -6,6 +6,8 @@ class Reveal < Window
   attr_reader :child
 
   def initialize(child, animation_length: 60)
+    child.hide
+
     @child = child
 
     @animation = :none
@@ -65,6 +67,7 @@ class Reveal < Window
   end
 
 private
+
   def create_render_target
     @render_target = $args.render_target(id)
     @render_target.primitives << @child.to_primitives
