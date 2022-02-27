@@ -30,7 +30,7 @@ def defaults
   $windows.add(FuturisticTvReveal.new(make_menu(760), animation_length: 30))
   $windows.add(ZoomReveal.new(make_menu(1000), animation_length: 20))
 
-  $windows.add(DraggableButton.new(x: 400, y: 400, w: 200, h: 200, text: 'Drag Me'))
+  $windows.add(DraggableButton.new(x: 800, y: 100, w: 200, h: 80, text: 'Drag Me'))
 
   slider = $windows.add(Slider.new(x: 100, y: 100, w: 400, h: 40, text: 50))
   slider.attach_observer(self) do |event|
