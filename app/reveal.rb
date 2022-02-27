@@ -28,6 +28,7 @@ class Reveal < Window
     @animation_ticks = 0
     @visible = false
 
+    child.show
     create_render_target
   end
 
@@ -37,6 +38,7 @@ class Reveal < Window
     @visible = false
 
     create_render_target
+    child.hide
   end
 
   def handle_inputs

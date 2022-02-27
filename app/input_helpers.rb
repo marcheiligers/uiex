@@ -13,6 +13,9 @@ module InputEvents
   end
 end
 
+UP_DOWN_ARROW_KEYS = { up: :up, down: :down }
+UP_DOWN_ARROW_KEYS_AND_WS = { up: :up, down: :down, w: :up, s: :down }
+
 class DebounceInput
   def initialize(events, max_ticks = 20, accel = 0, min_ticks = 3)
     @events = events
@@ -26,7 +29,7 @@ class DebounceInput
   end
 
   def debounce
-    _input, event_name = @events.detect { |input, _name| $args.inputs.send(input) }
+    _input, event_name = @events.detect { |input, _name| $args.inputs.send(input) } # TODO: deal with keys
     if @event_name != event_name
       @event_ticks = 0
       @current_debounce_ticks = @max_ticks

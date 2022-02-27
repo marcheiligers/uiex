@@ -1,13 +1,32 @@
-class Menu < Window # VerticalMenu
-  def initialize(x:)
-    super(x: x, y: 300, w: 220, h: 300, text: 'Menu')
-    @debounce_input = DebounceInput.new(up: :up, down: :down)
+class VerticalMenu < Window
+  attr_accessor :padding, :spacing
+
+  def initialize(**args)
+    super(args)
+
+    @padding = args[:padding] || 0
+    @spacing = args[:spacing] || 0
+
+    @debounce_input = DebounceInput.new(UP_DOWN_ARROW_KEYS) # TODO: UP_DOWN_ARROW_KEYS_AND_WS
+  end
+
+  # Statics cannot be selected or clicked. Think seperators or subtitles.
+  def add_static(child)
+    child.y = calc_top - child.h
+    children.add(child)
+  end
+
+  def add_selectable(child)
+    add_static(child)
+    child.attach_observer(self)
   end
 
   def add_button(text)
-    button = Button.new(x: 10, y: 250 - children.length * 50, w: 200, h: 40, text: text)
-    button.attach_observer(self)
-    children.add(button)
+    add_selectable(Button.new(x: padding, w: self.w - 2 * padding, h: 40, text: text))
+  end
+
+  def add_separator
+    add_static(HorizontalRule.new(x: padding, w: self.w - 2 * padding))
   end
 
   def observe(event)
@@ -45,5 +64,10 @@ class Menu < Window # VerticalMenu
       children[index].focus
       blur_children(children[index])
     end
+  end
+
+private
+  def calc_top
+    self.h - (children.inject(0) { |total, child| total + child.h } + spacing * children.length + padding)
   end
 end

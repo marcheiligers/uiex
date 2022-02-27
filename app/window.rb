@@ -17,7 +17,7 @@ class Window
     @w = args[:w] || 0
     @h = args[:h] || 0
     @color = args[:color] || Color::LIGHT_GREY
-    @text = args[:text] || "Window#{@@window_id += 1}"
+    @text = args[:text] || "#{self.class.name}#{@@window_id += 1}"
     @visible = args[:visible].nil? || true
 
     @children = WindowCollection.new(self)
@@ -64,7 +64,7 @@ class Window
   end
 
   def to_primitives
-    return unless visible?
+    # return unless visible?
 
     [relative_rect.solid!(color.to_h)] + @children.to_primitives
   end
@@ -85,7 +85,7 @@ end
 class WindowCollection
   extend Forwardable
 
-  def_delegators :@collection, :each, :map, :length, :index, :[]
+  def_delegators :@collection, :each, :map, :length, :index, :[], :inject
 
   def initialize(owner = nil)
     @owner = owner

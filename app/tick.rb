@@ -42,8 +42,9 @@ def defaults
 end
 
 def make_menu(x)
-  menu = Menu.new(x: x)
+  menu = VerticalMenu.new(x: x, y: 300, w: 220, h: 300, padding: 10, spacing: 10)
   menu.add_button('First')
+  menu.add_separator
   menu.add_button('Second')
   menu.add_button('Third')
   menu
