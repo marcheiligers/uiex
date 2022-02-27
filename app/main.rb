@@ -14,6 +14,7 @@ require 'app/window.rb'
 require 'app/reveal.rb'
 require 'app/button.rb'
 require 'app/horizontal_rule.rb'
+require 'app/focus_rect.rb'
 require 'app/vertical_menu.rb'
 require 'app/slider.rb'
 

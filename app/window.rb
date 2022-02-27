@@ -12,15 +12,17 @@ class Window
 
   def initialize(**args)
     @id = @@window_id
-    @x = args[:x] || 0
-    @y = args[:y] || 0
-    @w = args[:w] || 0
-    @h = args[:h] || 0
-    @color = args[:color] || Color::LIGHT_GREY
-    @text = args[:text] || "#{self.class.name}#{@@window_id += 1}"
-    @visible = args[:visible].nil? || true
+    @x = args.fetch(:x, 0)
+    @y = args.fetch(:y, 0)
+    @w = args.fetch(:w, 0)
+    @h = args.fetch(:h, 0)
+    @color = args.fetch(:color, Color::LIGHT_GREY)
+    @text = args.fetch(:text, "#{self.class.name}#{@@window_id += 1}")
+    @visible = args.fetch(:visible, true)
 
     @children = WindowCollection.new(self)
+
+    super(args)
   end
 
   def parent=(new_parent)

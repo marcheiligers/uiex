@@ -1,11 +1,13 @@
 class VerticalMenu < Window
   attr_accessor :padding, :spacing
+  attr_reader :focus_rect
 
   def initialize(**args)
     super(args)
 
     @padding = args[:padding] || 0
     @spacing = args[:spacing] || 0
+    @focus_rect = args[:focus_rect]
 
     @debounce_input = DebounceInput.new(UP_DOWN_ARROW_KEYS) # TODO: UP_DOWN_ARROW_KEYS_AND_WS
   end
@@ -34,6 +36,7 @@ class VerticalMenu < Window
     when :mouse_enter
       event.target.focus
       blur_children(event.target)
+      focus_rect.focus_on(event.target) if focus_rect
     when :pressed
       puts "#{event.target} pressed"
     end
@@ -46,28 +49,32 @@ class VerticalMenu < Window
 
     case @debounce_input.debounce
     when :up
-      index = focussed_child_index
-      index = if index.nil?
-                children.length - 1
-              else
-                index > 0 ? index - 1 : children.length - 1
-              end
-      children[index].focus
-      blur_children(children[index])
+      child = prev_focussable_child
+      child.focus
+      blur_children(child)
+      focus_rect.focus_on(child) if focus_rect
     when :down
-      index = focussed_child_index
-      index = if index.nil?
-                0
-              else
-                index < children.length - 1 ? index + 1 : 0
-              end
-      children[index].focus
-      blur_children(children[index])
+      child = next_focussable_child
+      child.focus
+      blur_children(child)
+      focus_rect.focus_on(child) if focus_rect
     end
+  end
+
+  def to_primitives
+    [super] + [focus_rect.to_primitives]
   end
 
 private
   def calc_top
     self.h - (children.inject(0) { |total, child| total + child.h } + spacing * children.length + padding)
+  end
+
+  def prev_focussable_child(cur_index = focussed_child_index)
+    children[0..(cur_index ? cur_index - 1 : -1)].reverse.detect { |child| child.focussable? }
+  end
+
+  def next_focussable_child(cur_index = focussed_child_index)
+    children[(cur_index ? cur_index + 1 : 0)..-1].detect { |child| child.focussable? } || next_focussable_child(nil)
   end
 end

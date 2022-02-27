@@ -1,3 +1,5 @@
+# https://html-color.codes/blue
+
 class Color
   attr_accessor :r, :g, :b
 
@@ -17,4 +19,5 @@ class Color
   DARK_GREY = Color.new(32, 32, 32)
   BLACK = Color.new(0, 0, 0)
   RED = Color.new(128, 0, 0)
+  STEEL_BLUE = Color.new(70, 130, 180)
 end
