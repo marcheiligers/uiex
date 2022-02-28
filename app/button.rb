@@ -54,6 +54,7 @@ class Switch < Button
 
     @on = args.fetch(:on, true)
     @on_color = args.fetch(:on_color, Color::STEEL_BLUE)
+    @text_color = args.fetch(:text_color, Color::DARK_GREY)
   end
 
   def set(on)

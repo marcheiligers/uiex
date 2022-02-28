@@ -45,7 +45,8 @@ def make_menu(x)
   menu = VerticalMenu.new(x: x, y: 300, w: 220, h: 300, padding: 10, spacing: 10, focus_rect: FocusRect.new)
   menu.add_button('First')
   menu.add_separator
-  menu.add_button('Second')
+  switch = menu.add_item(Switch.new(text: 'Second'))
+  switch.attach_observer(self) { |event| switch.set(!switch.on?) if event.name == :pressed }
   menu.add_button('Third')
   menu
 end

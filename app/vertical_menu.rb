@@ -1,34 +1,40 @@
 class VerticalMenu < Window
   attr_accessor :padding, :spacing
-  attr_reader :focus_rect
+  attr_reader :focus_rect, :default_height
+
+  DEFAULT_HEIGHT = 40
 
   def initialize(**args)
     super(args)
 
-    @padding = args[:padding] || 0
-    @spacing = args[:spacing] || 0
+    @padding = args.fetch(:padding, 0)
+    @spacing = args.fetch(:spacing, 0)
     @focus_rect = args[:focus_rect]
+    @default_height = args.fetch(:default_height, DEFAULT_HEIGHT)
 
     @debounce_input = DebounceInput.new(UP_DOWN_ARROW_KEYS) # TODO: UP_DOWN_ARROW_KEYS_AND_WS
   end
 
   # Statics cannot be selected or clicked. Think seperators or subtitles.
   def add_static(child)
+    child.w = self.w - 2 * padding if child.w.to_i == 0
+    child.h = DEFAULT_HEIGHT if child.h.to_i == 0
+    child.x = padding if child.x.to_i == 0
     child.y = calc_top - child.h
     children.add(child)
   end
 
-  def add_selectable(child)
+  def add_item(child)
     add_static(child)
     child.attach_observer(self)
   end
 
   def add_button(text)
-    add_selectable(Button.new(x: padding, w: self.w - 2 * padding, h: 40, text: text))
+    add_item(Button.new(text: text))
   end
 
   def add_separator
-    add_static(HorizontalRule.new(x: padding, w: self.w - 2 * padding))
+    add_static(HorizontalRule.new)
   end
 
   def observe(event)
