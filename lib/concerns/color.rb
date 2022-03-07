@@ -1,16 +1,17 @@
 # https://html-color.codes/blue
 
 class Color
-  attr_accessor :r, :g, :b
+  attr_accessor :r, :g, :b, :a
 
-  def initialize(r, g, b)
+  def initialize(r, g, b, a = 255)
     @r = r
     @g = g
     @b = b
+    @a = a
   end
 
   def to_h
-    { r: @r, g: @g, b: @b }
+    { r: @r, g: @g, b: @b, a: @a }
   end
 
   WHITE = Color.new(255, 255, 255)
@@ -20,4 +21,5 @@ class Color
   BLACK = Color.new(0, 0, 0)
   RED = Color.new(128, 0, 0)
   STEEL_BLUE = Color.new(70, 130, 180)
+  TRANSPARENT = Color.new(0, 0, 0, 0)
 end

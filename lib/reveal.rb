@@ -57,6 +57,7 @@ class Reveal < Window
     @animation_ticks += 1
 
     if @animation_ticks == @animation_length
+      notify_observers(Event.new(@animation == :show ? :shown : :hidden, self))
       @visible = true if @animation == :show
       @animation = :none
     end

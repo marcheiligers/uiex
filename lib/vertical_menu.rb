@@ -1,6 +1,6 @@
 class VerticalMenu < Window
   attr_accessor :padding, :spacing
-  attr_reader :focus_rect, :default_height
+  attr_reader :focus_rect, :focus_rect_front, :default_height
 
   DEFAULT_HEIGHT = 40
 
@@ -10,6 +10,7 @@ class VerticalMenu < Window
     @padding = args.fetch(:padding, 0)
     @spacing = args.fetch(:spacing, 0)
     @focus_rect = args[:focus_rect]
+    @focus_rect_front = args.fetch(:focus_rect_front, true)
     @default_height = args.fetch(:default_height, DEFAULT_HEIGHT)
 
     @debounce_input = DebounceInput.new(UP_DOWN_ARROW_KEYS) # TODO: UP_DOWN_ARROW_KEYS_AND_WS
@@ -19,8 +20,8 @@ class VerticalMenu < Window
   def add_static(child)
     child.w = self.w - 2 * padding if child.w.to_i == 0
     child.h = DEFAULT_HEIGHT if child.h.to_i == 0
-    child.x = padding if child.x.to_i == 0
-    child.y = calc_top - child.h
+    child.x = (self.w - child.w) / 2 if child.x.to_i == 0
+    child.y = calc_top - child.h if child.y.to_i == 0
     children.add(child)
   end
 
@@ -42,7 +43,7 @@ class VerticalMenu < Window
     when :mouse_enter
       event.target.focus
       blur_children(event.target)
-      focus_rect.focus_on(event.target) if focus_rect
+      focus_rect.focus(event.target) if focus_rect
     when :pressed
       puts "#{event.target} pressed"
     end
@@ -51,24 +52,28 @@ class VerticalMenu < Window
   def handle_inputs
     return unless visible?
 
-    children.each(&:handle_inputs)
+    super
 
     case @debounce_input.debounce
     when :up
       child = prev_focussable_child
       child.focus
       blur_children(child)
-      focus_rect.focus_on(child) if focus_rect
+      focus_rect.focus(child) if focus_rect
     when :down
       child = next_focussable_child
       child.focus
       blur_children(child)
-      focus_rect.focus_on(child) if focus_rect
+      focus_rect.focus(child) if focus_rect
     end
   end
 
   def to_primitives
-    [super] + [focus_rect.to_primitives]
+    if focus_rect_front
+      [super] + [focus_rect ? focus_rect.to_primitives : nil]
+    else
+      [focus_rect ? focus_rect.to_primitives : nil] + [super]
+    end
   end
 
 private

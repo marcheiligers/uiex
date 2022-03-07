@@ -53,6 +53,18 @@ module InputManager
     left: :a,
     right: :d
   }.freeze
+  NUMERIC_MAP = {
+    one: 1,
+    two: 2,
+    three: 3,
+    four: 4,
+    five: 5,
+    six: 6,
+    seven: 7,
+    eight: 8,
+    nine: 9,
+    zero: 0,
+  }.freeze
 
   def direction_down
     DIRECTIONS.detect { |sym| $args.keyboard.key_down.send(sym) } ||
@@ -60,10 +72,15 @@ module InputManager
       DIRECTIONS.detect { |sym| $args.controller_one.key_down.send(sym) }
   end
 
-  def accept?
+  def number_down
+    NUMERIC_MAP.detect { |key, _num| $args.keyboard.key_down.send(key) }&.last
+  end
+
+  def accept?(rect = nil)
     $args.keyboard.key_down.enter || $args.keyboard.key_down.space ||
       $args.controller_one.key_down.a || $args.controller_one.key_down.x ||
-      $args.controller_one.key_down.select || $args.controller_one.key_down.start
+      $args.controller_one.key_down.select || $args.controller_one.key_down.start ||
+      (rect && (click = $args.inputs.mouse.click) && click.inside_rect?(relative_rect)) # TODO: touch
   end
 
   def reject?

@@ -8,14 +8,12 @@ class Button < Window
 
     @text_color = args[:text_color] || Color::BLACK
     @focus_color = args[:focus_color] || Color::WHITE
-
-    # TODO: add callback
   end
 
   def handle_inputs
     super
 
-    notify_observers(Event.new(:pressed, self)) if focussed? && input_accepted?(relative_rect)
+    notify_observers(Event.new(:pressed, self)) if focussed? && accept?(relative_rect)
   end
 
   def to_primitives
@@ -33,22 +31,45 @@ class DraggableButton < Button
 end
 
 class GraphicalButton < Button
-  attr_reader :path
+  attr_reader :frame_w
+  attr_accessor :frame
 
   def initialize(**args)
+    args[:background] = args[:path]
+    args[:color] = args.fetch(:color, Color::TRANSPARENT)
+
     super(args)
 
-    @path = args[:path]
+    @frame = args.fetch(:frame, 1)
+    @frame_w = args[:frame_w]
+  end
+
+  def path=(val)
+    self.background = val
+  end
+
+  def path
+    background
   end
 
   def to_primitives
-    relative_rect.sprite(path: path)
+    return unless visible?
+
+    if frame_w && background
+      [
+        relative_rect.solid!(color.to_h),
+        relative_rect.sprite!(path: background, source_x: frame_w * (frame - 1), source_w: frame_w)
+      ] + @children.to_primitives
+    else
+      [
+        relative_rect.solid!(color.to_h),
+        relative_rect.sprite!(path: background)
+      ] + @children.to_primitives
+    end
   end
 end
 
 class Switch < Button
-  attr_reader :path
-
   def initialize(**args)
     super(args)
 
@@ -73,5 +94,20 @@ class Switch < Button
       relative_rect.solid!(**background_color.to_h),
       relative_center.label!(TEXT_ALIGN.merge(text: text, **text_color.to_h))
     ]
+  end
+end
+
+class GraphicalSwitch < Switch
+  attr_reader :path
+
+  def initialize(**args)
+    super(args)
+
+    @path = args[:path]
+    @source_w = args.fetch(:source_w, w)
+  end
+
+  def to_primitives
+    relative_rect.sprite!(path: path, source_x: on? ? 0 : @source_w, source_w: @source_w)
   end
 end

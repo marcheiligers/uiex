@@ -17,11 +17,11 @@ module Focusable
   end
 
   def focus
-    puts "@focussed || !@focussable #{@focussed} || #{!@focussable}"
     return if @focussed || !@focussable
 
     @focussed = true
     notify_observers(Event.new(:focussed, self))
+    self
   end
 
   def blur
@@ -29,6 +29,7 @@ module Focusable
 
     @focussed = false
     notify_observers(Event.new(:blurred, self))
+    self
   end
 
   def blur_children(except = nil)
