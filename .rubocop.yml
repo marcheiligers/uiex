@@ -8,6 +8,9 @@
 # where the inspected file is and continue its way up to the root directory.
 #
 # See https://docs.rubocop.org/rubocop/configuration
+AllCops:
+  NewCops: enable
+
 Style/GlobalVars:
   Enabled: no
 
@@ -20,8 +23,11 @@ Style/NumericPredicate:
 Style/FrozenStringLiteralComment:
   Enabled: no
 
-Style/RedundantFileExtensionsInRequire:
+Style/RedundantFileExtensionInRequire:
   Enabled: no
 
 Layout/LineLength:
   Max: 125
+
+Lint/AmbiguousOperatorPrecedence:
+  Enabled: no

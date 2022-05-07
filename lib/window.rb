@@ -1,29 +1,30 @@
 class Window
-  include InputEvents
+  include InputManager
   include Observable
+  include Focusable
 
-  attr_accessor :x, :y, :w, :h, :r, :g, :b, :text
+  attr_accessor :x, :y, :w, :h, :color, :text, :background
   attr_reader :id, :parent, :children
+
+  WINDOW_ARGS = %i[x y w h color text visible]
 
   @@window_id = 0
 
-  def initialize(x: 0, y: 0, w: 0, h: 0, r: 240, g: 240, b: 240, text: "Window#{@@window_id += 1}", visible: true)
+  def initialize(**args)
     @id = @@window_id
-    @x = x
-    @y = y
-    @w = w
-    @h = h
-    @r = r
-    @g = g
-    @b = b
-    @text = text
+    @x = args.fetch(:x, 0)
+    @y = args.fetch(:y, 0)
+    @w = args.fetch(:w, 0)
+    @h = args.fetch(:h, 0)
+    @color = args.fetch(:color, Color::LIGHT_GREY)
+    @text = args.fetch(:text, "#{self.class.name}#{@@window_id += 1}")
+    @visible = args.fetch(:visible, true)
+    @visible = args.fetch(:visible, true)
+    @background = args.fetch(:background, nil)
 
     @children = WindowCollection.new(self)
 
-    @focussed = false
-    @visible = visible
-
-    @pointer_inside = false
+    super(args)
   end
 
   def parent=(new_parent)
@@ -32,31 +33,9 @@ class Window
     @parent = new_parent
   end
 
-  # Focus
-  def focussed?
-    @focussed
-  end
-
-  def focus
-    unless @focussed
-      notify_observers(Event.new(:focussed, self))
-      @focussed = true
-    end
-  end
-
-  def blur
-    if @focussed
-      notify_observers(Event.new(:blurred, self))
-      @focussed = false
-    end
-  end
-
-  def blur_children(except = nil)
-    @children.each { |child| child.blur unless child == except }
-  end
-
-  def focussed_child_index
-    @children.index(&:focussed?)
+  # Inputs
+  def handle_inputs
+    children.handle_inputs
   end
 
   # Visibility TODO: events
@@ -91,7 +70,7 @@ class Window
   def to_primitives
     return unless visible?
 
-    [relative_rect.solid!(color)] + @children.to_primitives
+    [relative_rect.solid!(color.to_h), background ? relative_rect.sprite!(path: background) : nil] + @children.to_primitives
   end
 
   def rect
@@ -102,26 +81,20 @@ class Window
     { x: relative_x, y: relative_y, w: @w, h: @h }
   end
 
-  def color
-    { r: r, g: g, b: b }
-  end
-
   def inspect
     "#<#{self.class.name} #{text}>"
-  end
-
-  def handle_inputs
   end
 end
 
 class WindowCollection
   extend Forwardable
 
-  def_delegators :@collection, :each, :map, :length, :index, :[]
+  def_delegators :@collection, :each, :map, :length, :index, :[], :inject, :clear
 
   def initialize(owner = nil)
     @owner = owner
     @collection = []
+    @cleared = false
   end
 
   def add(child)
@@ -130,8 +103,18 @@ class WindowCollection
     child
   end
 
+  def clear
+    @collection.clear
+    @cleared = true
+  end
+
   def handle_inputs
-    each(&:handle_inputs)
+    each do |child|
+      break if @cleared
+
+      child.handle_inputs
+    end
+    @cleared = false
   end
 
   def to_primitives

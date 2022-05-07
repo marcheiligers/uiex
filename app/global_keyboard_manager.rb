@@ -4,24 +4,14 @@ class GlobalKeyboardManager
   end
 
   def handle_inputs
-    if $args.inputs.keyboard.key_held.m
-      case @debounce_input.debounce
-      when :up
-        if $state.sound.volume < 100
-          $state.sound.volume += 1
-          $publisher.publish(Event.new(:sound_volume_changed))
-        end
-      when :down
-        if $state.sound.volume > 0
-          $state.sound.volume -= 1
-          $publisher.publish(Event.new(:sound_volume_changed))
-        end
-      end
-    end
-  end
+    return unless $args.inputs.keyboard.key_held.m
 
-  def play(name)
-    $args.audio[name] = { input: "sounds/#{name}.wav", gain: $args.state.sound.volume / 100.0 } if $args.state.sound.enabled
+    case @debounce_input.debounce
+    when :up
+      $publisher.publish(Event.new(:sound_volume_up))
+    when :down
+      $publisher.publish(Event.new(:sound_volume_down))
+    end
   end
 end
 

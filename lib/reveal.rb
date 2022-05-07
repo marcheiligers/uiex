@@ -6,6 +6,8 @@ class Reveal < Window
   attr_reader :child
 
   def initialize(child, animation_length: 60)
+    child.hide
+
     @child = child
 
     @animation = :none
@@ -26,6 +28,7 @@ class Reveal < Window
     @animation_ticks = 0
     @visible = false
 
+    child.show
     create_render_target
   end
 
@@ -35,6 +38,7 @@ class Reveal < Window
     @visible = false
 
     create_render_target
+    child.hide
   end
 
   def handle_inputs
@@ -53,6 +57,7 @@ class Reveal < Window
     @animation_ticks += 1
 
     if @animation_ticks == @animation_length
+      notify_observers(Event.new(@animation == :show ? :shown : :hidden, self))
       @visible = true if @animation == :show
       @animation = :none
     end
@@ -65,6 +70,7 @@ class Reveal < Window
   end
 
 private
+
   def create_render_target
     @render_target = $args.render_target(id)
     @render_target.primitives << @child.to_primitives
