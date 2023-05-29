@@ -15,5 +15,5 @@ module StatelyObject
 
   def to_s
     serialize.to_s
-  end 
+  end
 end

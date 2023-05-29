@@ -10,8 +10,12 @@ class Color
     @a = a
   end
 
-  def to_h
+  def as_hash
     { r: @r, g: @g, b: @b, a: @a }
+  end
+
+  def to_h
+    as_hash
   end
 
   WHITE = Color.new(255, 255, 255)
@@ -20,6 +24,7 @@ class Color
   DARK_GREY = Color.new(32, 32, 32)
   BLACK = Color.new(0, 0, 0)
   RED = Color.new(128, 0, 0)
+  GREEN = Color.new(0, 255, 0)
   STEEL_BLUE = Color.new(70, 130, 180)
   TRANSPARENT = Color.new(0, 0, 0, 0)
 end
