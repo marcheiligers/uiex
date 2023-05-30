@@ -20,8 +20,6 @@ class Circle
   def to_primitives
     # TODO: Calc detail from radius
     # TODO: Draw regular polygons using the same
-    # TODO: Same for below
-    # TODO: Probaly offset with thickness / 2
     create_render_target if @changed
 
     {
