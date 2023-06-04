@@ -80,6 +80,7 @@ class Switch < Button
 
   def set(on)
     @on = on
+    # TODO: fire events
   end
 
   def on?

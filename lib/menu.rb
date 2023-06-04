@@ -1,30 +1,35 @@
-class VerticalMenu < Window
+class Menu < Window
   attr_accessor :padding, :spacing
-  attr_reader :focus_rect, :focus_rect_front, :default_height
-
-  DEFAULT_HEIGHT = 40
+  attr_reader :focus_rect, :focus_rect_front, :layout
 
   def initialize(**args)
     super(args)
 
-    @padding = args.fetch(:padding, 0)
-    @spacing = args.fetch(:spacing, 0)
     @focus_rect = args[:focus_rect]
     @focus_rect_front = args.fetch(:focus_rect_front, true)
-    @default_height = args.fetch(:default_height, DEFAULT_HEIGHT)
 
-    @debounce_input = DebounceInput.new(UP_DOWN_ARROW_KEYS) # TODO: UP_DOWN_ARROW_KEYS_AND_WS
+    @layout = args.fetch(
+      :layout,
+      HorizontalLayout.new(
+        padding: args.fetch(:padding, 0),
+        spacing: args.fetch(:spacing, 0),
+        default_w: args.fetch(:default_w, 80)
+      )
+    )
+    @layout.owner = self
+
+    @debounce_input = DebounceInput.new(ARROW_KEYS)
   end
 
   # Statics cannot be selected or clicked. Think seperators or subtitles.
   def add_static(child)
-    position_child(child)
+    layout.add(child)
     child.focussable = false
     children.add(child)
   end
 
   def add_item(child)
-    position_child(child)
+    layout.add(child)
     children.add(child)
     child.attach_observer(self)
   end
@@ -54,12 +59,12 @@ class VerticalMenu < Window
     super
 
     case @debounce_input.debounce
-    when :up
+    when :up, :left
       child = prev_focussable_child
       child.focus
       blur_children(child)
       focus_rect&.focus(child)
-    when :down
+    when :down, :right
       child = next_focussable_child
       child.focus
       blur_children(child)
@@ -76,23 +81,11 @@ class VerticalMenu < Window
   end
 
 private
-
-  def position_child(child)
-    child.w = w - 2 * padding if child.w.to_i == 0
-    child.h = DEFAULT_HEIGHT if child.h.to_i == 0
-    child.x = (w - child.w) / 2 if child.x.to_i == 0
-    child.y = calc_top - child.h if child.y.to_i == 0
-  end
-
-  def calc_top
-    h - (children.inject(0) { |total, child| total + child.h } + spacing * children.length + padding)
-  end
-
   def prev_focussable_child(cur_index = focussed_child_index)
     children[0..(cur_index ? cur_index - 1 : -1)].reverse.detect(&:focussable?) || next_focussable_child(-1)
   end
 
   def next_focussable_child(cur_index = focussed_child_index)
-    children[cur_index + 1..-1].detect(&:focussable?) || next_focussable_child(-1)
+    children[(cur_index ? cur_index : -1) + 1..-1].detect(&:focussable?) || next_focussable_child(-1)
   end
 end

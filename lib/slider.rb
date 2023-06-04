@@ -10,17 +10,17 @@ class Slider < Window
     button_size = [@w / 12, @h].min
     button_y = (@h - button_size) / 2
 
-    button_plus = children.add(Button.new(x: 0, y: button_y, w: button_size, h: button_size, text: '-', color: Color::DARK_GREY, focus_color: Color::RED, text_color: Color::WHITE))
-    button_plus.attach_observer(self) do |event|
-      button_plus.focus if event.name == :mouse_enter
-      button_plus.blur if event.name == :mouse_leave
+    @button_plus = children.add(Button.new(x: 0, y: button_y, w: button_size, h: button_size, text: '-', color: Color::DARK_GREY, focus_color: Color::RED, text_color: Color::WHITE))
+    @button_plus.attach_observer(self) do |event|
+      @button_plus.focus if event.name == :mouse_enter
+      @button_plus.blur if event.name == :mouse_leave
       self.value -= 1 if event.name == :pressed
     end
 
-    button_minus = children.add(Button.new(x: @w - button_size, y: button_y, w: button_size, h: button_size, text: '+', color: Color::DARK_GREY, focus_color: Color::RED, text_color: Color::WHITE))
-    button_minus.attach_observer(self) do |event|
-      button_minus.focus if event.name == :mouse_enter
-      button_minus.blur if event.name == :mouse_leave
+    @button_minus = children.add(Button.new(x: @w - button_size, y: button_y, w: button_size, h: button_size, text: '+', color: Color::DARK_GREY, focus_color: Color::RED, text_color: Color::WHITE))
+    @button_minus.attach_observer(self) do |event|
+      @button_minus.focus if event.name == :mouse_enter
+      @button_minus.blur if event.name == :mouse_leave
       self.value += 1 if event.name == :pressed
     end
 
@@ -38,12 +38,42 @@ class Slider < Window
   end
 
   def value=(val)
+    return if val == value
     puts "value=#{val}"
     set_value val
     @slider.position
   end
 
+  def w=(val)
+    @w = val
+    position_children
+  end
+
+  def h=(val)
+    @h = val
+    position_children
+  end
+
 private
+
+  def position_children
+    button_size = [@w / 12, @h].min
+    button_y = (@h - button_size) / 2
+
+    @button_plus.y = button_y
+    @button_plus.w = button_size
+    @button_plus.h = button_size
+
+    @button_minus.x = @w - button_size
+    @button_minus.y = button_y
+    @button_minus.w = button_size
+    @button_minus.h = button_size
+
+    @slider.w = button_size
+    @slider.h = button_size
+
+    @slider.position
+  end
 
   def set_value(val)
     val = @min if val < @min

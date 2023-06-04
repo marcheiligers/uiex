@@ -2,6 +2,7 @@ class Window
   include InputManager
   include Observable
   include Focusable
+  # include Serializable
 
   attr_accessor :x, :y, :w, :h, :color, :text, :background
   attr_reader :id, :parent, :children
@@ -81,8 +82,26 @@ class Window
     { x: relative_x, y: relative_y, w: @w, h: @h }
   end
 
+  def right
+    @x + @w
+  end
+
+  def top
+    @y + @h
+  end
+
+  # Magic value method
+  def value
+    @text.to_s.downcase.to_sym
+  end
+
   def inspect
     "#<#{self.class.name} #{text}>"
+  end
+
+  def contains_point?(x, y)
+    rr = relative_rect
+    rr.x <= x && rr.x + rr.w >= x && rr.y <= y && rr.y + rr.h >= y
   end
 end
 

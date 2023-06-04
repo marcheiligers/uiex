@@ -1,6 +1,8 @@
 # https://html-color.codes/blue
 
 class Color
+  include Serializable
+
   attr_accessor :r, :g, :b, :a
 
   def initialize(r, g, b, a = 255)
@@ -16,6 +18,10 @@ class Color
 
   def to_h
     as_hash
+  end
+
+  def to_s
+    as_hash.values.join('-')
   end
 
   WHITE = Color.new(255, 255, 255)

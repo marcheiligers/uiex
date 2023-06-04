@@ -1,4 +1,4 @@
-Event = Struct.new(:name, :target) do
+Event = Struct.new(:name, :target, :value) do
   def source
     target
   end
@@ -6,15 +6,19 @@ Event = Struct.new(:name, :target) do
   def value
     target.value
   end
+
+  def to_s
+    "#{target} #{name}"
+  end
 end
 
 module Observable
   def observers
-    @observers ||= {}
+    @observers ||= Hash.new { |h, k| h[k] = [] }
   end
 
   def attach_observer(observer, callback = :observe, &block)
-    observers[observer] = block || callback
+    observers[observer] << (block || callback)
     self
   end
 
@@ -24,11 +28,13 @@ module Observable
   end
 
   def notify_observers(event, private: false)
-    observers.each do |observer, callback|
-      if callback.is_a?(Proc)
-        callback.call(event, observer)
-      else
-        observer.__send__(callback, event)
+    observers.each do |observer, callbacks|
+      callbacks.each do |callback|
+        if callback.is_a?(Proc)
+          callback.call(event, observer)
+        else
+          observer.__send__(callback, event)
+        end
       end
     end
     $publisher.publish(event) unless private

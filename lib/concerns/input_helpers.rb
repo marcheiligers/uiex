@@ -13,6 +13,8 @@ module InputEvents
   end
 end
 
+ARROW_KEYS = { up: :up, down: :down, left: :left, right: :right }
+LEFT_RIGHT_ARROW_KEYS = { left: :left, right: :right }
 UP_DOWN_ARROW_KEYS = { up: :up, down: :down }
 UP_DOWN_ARROW_KEYS_AND_WS = { up: :up, down: :down, w: :up, s: :down }
 
