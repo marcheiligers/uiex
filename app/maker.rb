@@ -2,10 +2,10 @@ BG = [0, 0, 0].freeze
 
 def init(args)
   args.state.shapes = [
-    Circle.new(x: 600, y: 300, radius: 100, thickness: 4, color: Color::RED),
-    Disk.new(x: 600, y: 300, radius: 100, color: Color.new(0, 225, 0, 80)),
-    Disk.new(x: 300, y: 300, radius: 100, color: Color.new(0, 225, 0, 80)),
-    Circle.new(x: 300, y: 300, radius: 100, thickness: 4, color: Color::RED)
+    # Circle.new(x: 600, y: 300, radius: 100, thickness: 4, color: Color::RED),
+    # Disk.new(x: 600, y: 300, radius: 100, color: Color.new(0, 225, 0, 80)),
+    # Disk.new(x: 300, y: 300, radius: 100, color: Color.new(0, 225, 0, 80)),
+    # Circle.new(x: 300, y: 300, radius: 100, thickness: 4, color: Color::RED)
   ]
   args.state.points = []
   args.state.current_thickness = 20
@@ -17,6 +17,7 @@ def init(args)
   menu = Menu.new(x: 0, y: 680, w: 1280, h: 40, focus_rect: FocusRect.new)
   mode_group = RadioGroup.new(h: 40)
   mode_group.add_item(Switch.new(text: 'Line', on: true))
+  mode_group.add_item(Switch.new(text: 'Circle', on: false))
   mode_group.add_item(Switch.new(text: 'Disk', on: false))
   mode_group.attach_observer(menu) do |event|
     args.state.mode = event.value if event.name == :selected
@@ -55,6 +56,7 @@ def init(args)
   button.attach_observer(button) do |event|
     if event.name == :pressed
       puts "Cached render targets: #{CachedRenderTarget::CACHE.length}"
+      puts "Cached render targets paths:\n• #{CachedRenderTarget::CACHE.keys.sort.join("\n• ")}"
     end
   end
 
@@ -68,6 +70,8 @@ def init(args)
 
   args.state.menu = menu
   args.state.slider = slider
+
+  putz menu.focussable_children
 end
 
 def inputs(args)
@@ -90,6 +94,8 @@ def inputs(args)
     if !args.inputs.mouse.button_left && args.state.current_shape
       args.state.points << Marker.new(x: args.inputs.mouse.x, y: args.inputs.mouse.y, color: Color::RED).to_primitives
       args.state.current_shape = nil
+      # args.state.color = args.state.color.lighten_by(60)
+      # args.state.color.a = args.state.color.a * 0.6
     end
 
     if args.state.current_shape
@@ -97,14 +103,24 @@ def inputs(args)
       args.state.current_shape.y2 = args.inputs.mouse.y
       args.state.current_shape.thickness = args.state.current_thickness
     end
-  when :disk
+  when :disk, :circle
     if args.inputs.mouse.button_left && args.state.current_shape.nil? && !args.state.menu.contains_point?(args.inputs.mouse.x, args.inputs.mouse.y)
-      args.state.current_shape = Disk.new(
-        x: args.inputs.mouse.x,
-        y: args.inputs.mouse.y,
-        radius: 1,
-        color: args.state.color,
-      )
+      if args.state.mode == :disk
+        args.state.current_shape = Disk.new(
+          x: args.inputs.mouse.x,
+          y: args.inputs.mouse.y,
+          radius: 1,
+          color: args.state.color,
+        )
+      else
+        args.state.current_shape = Circle.new(
+          x: args.inputs.mouse.x,
+          y: args.inputs.mouse.y,
+          radius: 1,
+          thickness: args.state.current_thickness,
+          color: args.state.color,
+        )
+      end
       args.state.shapes << args.state.current_shape
       args.state.points << Marker.new(x: args.inputs.mouse.x, y: args.inputs.mouse.y, color: Color::GREEN).to_primitives
     end

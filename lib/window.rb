@@ -99,6 +99,10 @@ class Window
     "#<#{self.class.name} #{text}>"
   end
 
+  def to_s
+    inspect
+  end
+
   def contains_point?(x, y)
     rr = relative_rect
     rr.x <= x && rr.x + rr.w >= x && rr.y <= y && rr.y + rr.h >= y
@@ -108,7 +112,7 @@ end
 class WindowCollection
   extend Forwardable
 
-  def_delegators :@collection, :each, :map, :length, :index, :[], :inject, :clear
+  def_delegators :@collection, :each, :map, :flat_map, :length, :empty?, :index, :[], :inject, :clear
 
   def initialize(owner = nil)
     @owner = owner

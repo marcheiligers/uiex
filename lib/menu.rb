@@ -51,6 +51,8 @@ class Menu < Window
     when :pressed
       puts "#{event.target} pressed"
     end
+
+    notify_observers(event)
   end
 
   def handle_inputs
@@ -61,11 +63,13 @@ class Menu < Window
     case @debounce_input.debounce
     when :up, :left
       child = prev_focussable_child
+putz "prev -> #{child}"
       child.focus
       blur_children(child)
       focus_rect&.focus(child)
     when :down, :right
       child = next_focussable_child
+putz "next -> #{child}"
       child.focus
       blur_children(child)
       focus_rect&.focus(child)
@@ -78,14 +82,5 @@ class Menu < Window
     else
       [focus_rect ? focus_rect.to_primitives : nil] + [super]
     end
-  end
-
-private
-  def prev_focussable_child(cur_index = focussed_child_index)
-    children[0..(cur_index ? cur_index - 1 : -1)].reverse.detect(&:focussable?) || next_focussable_child(-1)
-  end
-
-  def next_focussable_child(cur_index = focussed_child_index)
-    children[(cur_index ? cur_index : -1) + 1..-1].detect(&:focussable?) || next_focussable_child(-1)
   end
 end

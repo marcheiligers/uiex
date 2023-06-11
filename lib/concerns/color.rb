@@ -1,4 +1,5 @@
 # https://html-color.codes/blue
+# Some methods from https://github.com/halostatue/color, under MIT
 
 class Color
   include Serializable
@@ -22,6 +23,33 @@ class Color
 
   def to_s
     as_hash.values.join('-')
+  end
+
+  # Mix the RGB hue with White so that the RGB hue is the specified
+  # percentage of the resulting colour. Strictly speaking, this isn't a
+  # darken_by operation.
+  def lighten_by(percent)
+    mix_with(WHITE, percent)
+  end
+
+  # Mix the RGB hue with Black so that the RGB hue is the specified
+  # percentage of the resulting colour. Strictly speaking, this isn't a
+  # darken_by operation.
+  def darken_by(percent)
+    mix_with(BLACK, percent)
+  end
+
+  # Mix the mask colour (which must be an RGB object) with the current
+  # colour at the stated opacity percentage (0..100).
+  def mix_with(mask, opacity)
+    opacity /= 100.0
+    rgb = self.dup
+
+    rgb.r = (@r * opacity) + (mask.r * (1 - opacity))
+    rgb.g = (@g * opacity) + (mask.g * (1 - opacity))
+    rgb.b = (@b * opacity) + (mask.b * (1 - opacity))
+
+    rgb
   end
 
   WHITE = Color.new(255, 255, 255)

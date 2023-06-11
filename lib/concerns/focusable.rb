@@ -32,11 +32,37 @@ module Focusable
     self
   end
 
-  def blur_children(except = nil)
-    @children.each { |child| child.blur unless child == except }
+  def focussable_children
+    @children.flat_map do |child|
+      if child.children.empty? && child.focussable?
+        child
+      else
+        child.focussable_children
+      end
+    end
   end
 
   def focussed_child_index
-    @children.index(&:focussed?)
+    focussable_children.index(&:focussed?)
+  end
+
+  def blur_children(except = nil)
+    focussable_children.each { |child| child.blur unless child == except }
+  end
+
+  def prev_focussable_child(cur_index = focussed_child_index)
+    fc = focussable_children
+    return nil if fc.empty?
+
+    i = cur_index.to_i
+    i == 0 ? fc[-1] : fc[i - 1]
+  end
+
+  def next_focussable_child(cur_index = focussed_child_index)
+    fc = focussable_children
+    return nil if fc.empty?
+
+    i = cur_index.nil? ? -1 : cur_index.to_i
+    i == fc.length - 1 ? fc[0] : fc[i + 1]
   end
 end

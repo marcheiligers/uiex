@@ -1,4 +1,10 @@
 class RadioGroup < Menu
+  def initialize(**args)
+    super(args)
+
+    @focussable = false
+  end
+
   def observe(event)
     super(event)
 
@@ -14,5 +20,4 @@ class RadioGroup < Menu
   def deselect_children(except: nil)
     @children.each { |child| child.set(false) unless child == except }
   end
-
 end

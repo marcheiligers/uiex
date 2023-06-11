@@ -17,6 +17,12 @@ class Slider < Window
       self.value -= 1 if event.name == :pressed
     end
 
+    @slider = children.add(SliderButton.new(w: button_size, h: button_size, text: 'o', color: Color::DARK_GREY, focus_color: Color::RED, text_color: Color::WHITE))
+    @slider.attach_observer(self) do |event|
+      @slider.focus if event.name == :mouse_enter
+      @slider.blur if event.name == :mouse_leave
+    end
+
     @button_minus = children.add(Button.new(x: @w - button_size, y: button_y, w: button_size, h: button_size, text: '+', color: Color::DARK_GREY, focus_color: Color::RED, text_color: Color::WHITE))
     @button_minus.attach_observer(self) do |event|
       @button_minus.focus if event.name == :mouse_enter
@@ -24,13 +30,9 @@ class Slider < Window
       self.value += 1 if event.name == :pressed
     end
 
-    @slider = children.add(SliderButton.new(w: button_size, h: button_size, text: 'o', color: Color::DARK_GREY, focus_color: Color::RED, text_color: Color::WHITE))
-    @slider.attach_observer(self) do |event|
-      @slider.focus if event.name == :mouse_enter
-      @slider.blur if event.name == :mouse_leave
-    end
-
     self.value = (args[:text] || 50)
+
+    @focussable = false
   end
 
   def value
@@ -39,7 +41,7 @@ class Slider < Window
 
   def value=(val)
     return if val == value
-    puts "value=#{val}"
+    putz "value=#{val}"
     set_value val
     @slider.position
   end

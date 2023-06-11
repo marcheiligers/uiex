@@ -6,24 +6,31 @@
 
 # To run the test: ./dragonruby mygame --eval app/tests.rb --no-tick
 
-class MySuperHappyFunGame
-  attr_gtk
+# class MySuperHappyFunGame
+#   attr_gtk
 
-  def tick
-    outputs.solids << [100, 100, 300, 300]
-  end
-end
+#   def tick
+#     outputs.solids << [100, 100, 300, 300]
+#   end
+# end
 
-def test_universe args, assert
-  game = MySuperHappyFunGame.new
-  game.args = args
-  game.tick
-  assert.true!  args.outputs.solids.length == 1, "failure: a solid was not added after tick"
-  assert.false! 1 == 2, "failure: some how, 1 equals 2, the world is ending"
-  puts "test_universe completed successfully"
+# def test_universe args, assert
+#   game = MySuperHappyFunGame.new
+#   game.args = args
+#   game.tick
+#   assert.true!  args.outputs.solids.length == 1, "failure: a solid was not added after tick"
+#   assert.false! 1 == 2, "failure: some how, 1 equals 2, the world is ending"
+#   puts "test_universe completed successfully"
+# end
+
+def test_focus
+  menu = Menu.new
+  menu.add_button('1')
+  menu.add_button('2')
+  menu.add_button('3')
 end
 
 puts "running tests"
 $gtk.reset 100
-$gtk.log_level = :off
+# $gtk.log_level = :off
 $gtk.tests.start
