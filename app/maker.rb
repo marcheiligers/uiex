@@ -1,16 +1,21 @@
 BG = [0, 0, 0].freeze
 
 def init(args)
+  args.state.base = Circle.new(x: 100, y: 600, radius: 50, thickness: 10, color: Color::WHITE, start_angle: 40)
+  args.state.cannon = Line.new(x: 100, y: 600, x2: 170, y2: 600, thickness: 10, color: Color::WHITE, rotate: 20)
+
+
   args.state.shapes = [
-    # Circle.new(x: 600, y: 300, radius: 100, thickness: 4, color: Color::RED),
-    # Disk.new(x: 600, y: 300, radius: 100, color: Color.new(0, 225, 0, 80)),
-    # Disk.new(x: 300, y: 300, radius: 100, color: Color.new(0, 225, 0, 80)),
-    # Circle.new(x: 300, y: 300, radius: 100, thickness: 4, color: Color::RED)
+    args.state.base,
+    args.state.cannon,
+    # LineSmoke.new(Line.new(x: 300, y: 360, x2: 900, y2: 360, thickness: 20, cap: :round, color: Color::FUCHSIA.lighten_by(4)))
+    LineGlow.new(Line.new(x: 320, y: 360, x2: 960, y2: 360, thickness: 20, cap: :round, color: Color::FUCHSIA.lighten_by(4))),
   ]
   args.state.points = []
   args.state.current_thickness = 20
   args.state.current_shape = nil
   args.state.mode = :line
+  args.state.cap = :round
   args.state.debug = true
   args.state.color = Color::WHITE
 
@@ -60,6 +65,14 @@ def init(args)
     end
   end
 
+  cap_switch = menu.add_item(Switch.new(text: 'Round', on: true))
+  cap_switch.attach_observer(menu) do |event|
+    if event.name == :pressed
+      cap_switch.set(!cap_switch.on?)
+      args.state.cap = cap_switch.on? ? :round : :butt
+    end
+  end
+
   debug_switch = menu.add_item(Switch.new(text: 'Debug', on: true))
   debug_switch.attach_observer(menu) do |event|
     if event.name == :pressed
@@ -72,6 +85,8 @@ def init(args)
   args.state.slider = slider
 
   putz menu.focussable_children
+
+  args.state.current_index = 0
 end
 
 def inputs(args)
@@ -85,7 +100,7 @@ def inputs(args)
         y2: args.inputs.mouse.y,
         thickness: args.state.current_thickness,
         color: args.state.color,
-        cap: :round
+        cap: args.state.cap
       )
       args.state.shapes << args.state.current_shape
       args.state.points << Marker.new(x: args.inputs.mouse.x, y: args.inputs.mouse.y, color: Color::GREEN).to_primitives
@@ -111,6 +126,8 @@ def inputs(args)
           y: args.inputs.mouse.y,
           radius: 1,
           color: args.state.color,
+          start_angle: 45,
+          end_angle: 135
         )
       else
         args.state.current_shape = Circle.new(
@@ -119,6 +136,7 @@ def inputs(args)
           radius: 1,
           thickness: args.state.current_thickness,
           color: args.state.color,
+          end_angle: 90
         )
       end
       args.state.shapes << args.state.current_shape
@@ -131,6 +149,8 @@ def inputs(args)
     end
 
     if args.state.current_shape
+      args.state.current_shape.start_angle = Math.atan2(args.inputs.mouse.y - args.state.current_shape.y, args.inputs.mouse.x - args.state.current_shape.x).to_degrees - 45
+      args.state.current_shape.end_angle = args.state.current_shape.start_angle + 90
       args.state.current_shape.radius = Math.sqrt((args.inputs.mouse.x - args.state.current_shape.x)**2 + (args.inputs.mouse.y - args.state.current_shape.y)**2)
     end
   end
@@ -141,12 +161,35 @@ def inputs(args)
   args.state.slider.value = args.state.current_thickness
 
   args.state.menu.handle_inputs
+
+  args.state.current_index -= 1 if args.inputs.keyboard.key_down.z
+  args.state.current_index += 1 if args.inputs.keyboard.key_down.x
+  args.state.current_index = 0 if args.state.current_index >= CachedRenderTarget::CACHE.length
+  args.state.current_index = CachedRenderTarget::CACHE.length - 1 if args.state.current_index < 0
+
+  angle = Math.atan2(args.inputs.mouse.y - args.state.base.y, args.inputs.mouse.x - args.state.base.x).to_degrees
+  args.state.base.start_angle = (angle + 20) % 360
+  args.state.base.end_angle = (340 - angle) % 360
+  args.state.cannon.rotate = angle
 end
 
 def draw(args)
   args.outputs.primitives << args.state.shapes.map(&:to_primitives)
   args.outputs.primitives << args.state.points if args.state.debug
   args.outputs.primitives << args.state.menu.to_primitives
+
+  if args.state.current_index < CachedRenderTarget::CACHE.length
+    path = CachedRenderTarget::CACHE.keys[args.state.current_index]
+    data = CachedRenderTarget::CACHE[path]
+    args.outputs.primitives << {
+      x: 10,
+      y: 30,
+      w: data.w,
+      h: data.h,
+      path: path
+    }.sprite!(Color::WHITE)
+    args.outputs.primitives << { x: 10, y: 20, text: "#{args.state.current_index}/#{CachedRenderTarget::CACHE.length}: #{path} -> #{data.w}, #{data.h}" }.label!(Color::WHITE)
+  end
 end
 
 def tick(args)

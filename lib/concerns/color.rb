@@ -52,6 +52,12 @@ class Color
     rgb
   end
 
+  def with_a(a)
+    rgb = self.dup
+    rgb.a = a
+    rgb
+  end
+
   WHITE = Color.new(255, 255, 255)
   LIGHT_GREY = Color.new(240, 240, 240)
   GREY = Color.new(128, 128, 128)
@@ -60,5 +66,7 @@ class Color
   RED = Color.new(128, 0, 0)
   GREEN = Color.new(0, 255, 0)
   STEEL_BLUE = Color.new(70, 130, 180)
+  FUCHSIA = Color.new(255, 0, 255)
+
   TRANSPARENT = Color.new(0, 0, 0, 0)
 end

@@ -42,4 +42,36 @@ module Easing
 
     x * x * x * x
   end
+
+  def ease_in_quint(pos, dur)
+    x = pos / dur.to_f
+    return 0 if x <= 0
+    return 1 if x >= 1
+
+    x * x * x * x * x
+  end
+
+  def ease_in_10x(pos, dur)
+    x = pos / dur.to_f
+    return 0 if x <= 0
+    return 1 if x >= 1
+
+    x * x * x * x * x * x * x * x * x * x
+  end
+
+  def ease_in_out_quad(pos, dur)
+    x = pos / dur.to_f
+    return 0 if x <= 0
+    return 1 if x >= 1
+
+    x < 0.5 ? 2 * x * x : 1 - (-2 * x + 2)**2 / 2
+  end
+
+  def ease_in_linear(pos, dur)
+    x = pos / dur.to_f
+    return 0 if x <= 0
+    return 1 if x >= 1
+
+    x
+  end
 end

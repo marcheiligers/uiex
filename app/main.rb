@@ -10,6 +10,9 @@ require 'lib/concerns/input_helpers.rb'
 require 'lib/concerns/cached_rt.rb'
 require 'lib/concerns/layouts.rb'
 
+require 'lib/decorators/glow.rb'
+require 'lib/decorators/smoke.rb'
+
 require 'lib/line.rb'
 require 'lib/marker.rb'
 require 'lib/circle.rb'

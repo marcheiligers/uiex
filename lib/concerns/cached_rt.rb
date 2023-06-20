@@ -16,9 +16,13 @@ module CachedRenderTarget
 
   def cached_rt(path, &block)
     CACHE[path] ||= begin
-      $args.render_target(path).tap do |rt|
-        block.call(rt)
-      end
+      rt = $args.render_target(path)
+      block.call(rt)
+      {
+        w: rt.w,
+        h: rt.h,
+        rt: rt
+      }
     end
   end
 end
