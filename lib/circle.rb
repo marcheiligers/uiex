@@ -3,9 +3,8 @@ class Circle
   include Serializable
   include CachedRenderTarget
 
-  attr_reader :id, :radius, :thickness
-  attr_accessor :x, :y, :color, :start_angle, :end_angle
-  CIRCLE_DETAIL = 60
+  attr_reader :id, :radius, :thickness, :start_angle, :end_angle
+  attr_accessor :x, :y, :color
 
   # TODO: add start_angle, end_angle, angle
   def initialize(**args)
@@ -28,8 +27,15 @@ class Circle
     @thickness = val
   end
 
+  def start_angle=(val)
+    @start_angle = val % 360
+  end
+
+  def end_angle=(val)
+    @end_angle = val % 360
+  end
+
   def to_primitives
-    # TODO: Calc detail from radius
     # TODO: Draw regular polygons using the same
     @path ||= "circle:#{accuracy_cache_key(@radius)}:#{@thickness}:#{angular_dist}"
     cached_rt(@path) { |rt| create_render_target(rt) }
@@ -62,6 +68,11 @@ private
     @size ||= @radius * 2 + @thickness
   end
 
+  # arc length:
+  # l = 2πr(ø/360)
+  # 360l = 2πrø
+  # ø = 360l/2πr
+
   def create_render_target(rt)
     if @radius < @thickness
       rt.w = rt.h = @radius * 2
@@ -70,11 +81,12 @@ private
       rt.w = rt.h = @radius * 2
 
       inner_radius = @radius - @thickness
-      circle_detail = (angular_dist / 360 * CIRCLE_DETAIL).ceil
-      segment_angle = angular_dist / circle_detail
-      primitives = circle_detail.times.map do |i|
-        segment_start_angle = i * segment_angle
-        segment_end_angle = [segment_start_angle + segment_angle, angular_dist].min
+      theta = 360 / (2 * Math::PI * @radius)
+      steps = (angular_dist / theta).ceil
+
+      primitives = steps.times.map do |i|
+        segment_start_angle = i * theta
+        segment_end_angle = [segment_start_angle + theta, angular_dist].min
         [
           { # Two outer points and one inner point
             x: @radius + @radius * segment_start_angle.cos,
@@ -149,6 +161,14 @@ class Disk
   end
 
   def self.primitives(radius, angular_dist = 360)
+    # return [] if radius == 0
+
+    # theta = 360 / (2 * Math::PI * radius)
+    # steps = [(angular_dist / theta).ceil, 0].max
+
+    # steps.times.map do |i|
+    #   segment_start_angle = i * theta
+    #   segment_end_angle = [segment_start_angle + theta, angular_dist].min
     circle_detail = (angular_dist.fdiv(360) * CIRCLE_DETAIL).to_i
     segment_angle = angular_dist / circle_detail
     circle_detail.times.map do |i|

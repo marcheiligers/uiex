@@ -9,7 +9,8 @@ def init(args)
     args.state.base,
     args.state.cannon,
     # LineSmoke.new(Line.new(x: 300, y: 360, x2: 900, y2: 360, thickness: 20, cap: :round, color: Color::FUCHSIA.lighten_by(4)))
-    LineGlow.new(Line.new(x: 320, y: 360, x2: 960, y2: 360, thickness: 20, cap: :round, color: Color::FUCHSIA.lighten_by(4))),
+    # LineGlow.new(Line.new(x: 320, y: 360, x2: 960, y2: 360, thickness: 20, cap: :round, color: Color::FUCHSIA)),
+    LineGlow.new(Line.new(x: 320, y: 120, x2: 960, y2: 120, thickness: 20, cap: :round, color: Color::BLUE)),
   ]
   args.state.points = []
   args.state.current_thickness = 20
@@ -168,8 +169,8 @@ def inputs(args)
   args.state.current_index = CachedRenderTarget::CACHE.length - 1 if args.state.current_index < 0
 
   angle = Math.atan2(args.inputs.mouse.y - args.state.base.y, args.inputs.mouse.x - args.state.base.x).to_degrees
-  args.state.base.start_angle = (angle + 20) % 360
-  args.state.base.end_angle = (340 - angle) % 360
+  args.state.base.start_angle = angle + 20
+  args.state.base.end_angle = angle - 20
   args.state.cannon.rotate = angle
 end
 
@@ -194,9 +195,12 @@ end
 
 def tick(args)
   args.outputs.background_color = BG
-  init(args) if args.tick_count == 0
+  if args.tick_count == 0
+    init(args)
+  else
+    inputs(args) # no inputs on first tick
+  end
 
-  inputs(args)
   draw(args)
   # puts args.state.shapes
 

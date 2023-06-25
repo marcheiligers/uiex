@@ -5,7 +5,7 @@ class LineGlow
   # Animate by cycling through these RTs fading one in and one out, giving a pulsating effect
   EASE_DUR = 40
   NUM_LAYERS = 2
-  DEF_RANGE = 100
+  DEF_RANGE = 200
 
   def initialize(line, range = DEF_RANGE)
     @line = line
@@ -15,6 +15,9 @@ class LineGlow
 
     @cur_index = 0
     @cur_pos = 0
+
+    @color = @line.color
+    @line.color = @color.lighten_by(5)
   end
 
   def to_primitives
@@ -27,16 +30,20 @@ class LineGlow
       @cur_index = 0 if @cur_index >= @rts.length
     end
 
+    col = @color.as_rgb_hash
+
     [
       rt1.sprite!(
         x: @line.x + rt1.offset_x,
         y: @line.y + rt1.offset_y,
-        r: 0, g: 255, b: 0, a: 255 - a
+        a: 255 - a,
+        **col
       ),
       rt2.sprite!(
         x: @line.x + rt2.offset_x,
         y: @line.y + rt2.offset_y,
-        r: 0, g: 255, b: 0, a: a
+        a: a,
+        **col
       ),
       @line.to_primitives
     ]
@@ -48,7 +55,7 @@ class LineGlow
 
   def prepare_rt(num)
     rts = prepare_with_easing(num)
-    rt = $args.render_target("lineglowrt#{num}")
+    rt = $args.render_target("lineglowrt#{num}") #TODO: thing
     rt.w = rts[0].w
     rt.h = rts[0].h
     ox = -rts[0].offset_x
@@ -62,7 +69,7 @@ class LineGlow
 
     {
       offset_x: -ox,
-      offset_y: -ox,
+      offset_y: -oy,
       w: rt.w,
       h: rt.h,
       path: "lineglowrt#{num}"
@@ -72,13 +79,10 @@ class LineGlow
   def prepare_with_easing(num)
     mul = @range - @line.thickness
     steps = 255
-    # a_step = 245 / steps
     a = 1
     steps.downto(0).map do |pos|
-      # a += a_step
-      r = ease_in_10x(pos, steps) * mul + @line.thickness
+      r = ease_in_quint(pos, steps) * mul + @line.thickness
       c = 0.01 # ease_in_10x(pos, steps) * 0.01
-      # puts "c => #{c}"
       prep_rt(r, "lineglow#{num}-#{pos}", a, c)
     end + [prep_rt(@line.thickness / 2 + 2, "lineglow-1", 200, 0.7)]
   end
@@ -90,8 +94,10 @@ class LineGlow
     rt.w = @line.length + range * 2
     rt.h = @line.thickness + range * 2
 
-    rt.primitives << @line.length.round.times.map do |x|
-      next if rand > chance
+    l = @line.length.round
+
+    rt.primitives << l.times.map do |x|
+      next if rand > ease_in_out_parabolic(x, l) * chance * 2 + chance
       Disk.new(x: range + x, y: range, radius: range, color: Color::WHITE).to_primitives
     end
 
@@ -104,4 +110,23 @@ class LineGlow
       a: alpha
     }
   end
+end
+
+def linear_track(length)
+  i = -1
+  -> { i += 1; i < length ? { x: i, y: 0 } : nil }
+end
+
+def circular_track(radius, start_angle: 0, end_angle: 360)
+  theta = 360 / (2 * Math::PI * @radius)
+  angular_dist = (end_angle - start_angle).abs
+  steps = (angular_dist / theta).ceil
+  i = -1
+  -> { i += 1; i < steps ? { x: (i * theta + start_angle).cos, y: (i * theta + start_angle).sin } : nil }
+end
+
+def glow_along_track(track)
+end
+
+def alpha_glow_along_track(range, path, alpha, chance)
 end

@@ -61,9 +61,12 @@ class Line
     @cap = val
   end
 
-  def to_primitives
+  def path
     @path ||= "line:#{accuracy_cache_key(length)}:#{accuracy_cache_key(@thickness)}:#{@cap}"
-    cached_rt(@path) { |rt| create_render_target(rt) }
+  end
+
+  def to_primitives
+    cached_rt(path) { |rt| create_render_target(rt) }
 
     {
       x: @x + @offset_x,
@@ -73,7 +76,7 @@ class Line
       angle: angle + @rotate,
       angle_anchor_x: @angle_anchor_x,
       angle_anchor_y: @angle_anchor_y,
-      path: @path
+      path: path
     }.sprite!(@color)
   end
 

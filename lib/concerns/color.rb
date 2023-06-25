@@ -17,12 +17,20 @@ class Color
     { r: @r, g: @g, b: @b, a: @a }
   end
 
+  def as_rgb_hash
+    { r: @r, g: @g, b: @b }
+  end
+
   def to_h
     as_hash
   end
 
   def to_s
     as_hash.values.join('-')
+  end
+
+  def dup
+    Color.new(@r, @g, @b, @a)
   end
 
   # Mix the RGB hue with White so that the RGB hue is the specified
@@ -43,13 +51,12 @@ class Color
   # colour at the stated opacity percentage (0..100).
   def mix_with(mask, opacity)
     opacity /= 100.0
-    rgb = self.dup
-
-    rgb.r = (@r * opacity) + (mask.r * (1 - opacity))
-    rgb.g = (@g * opacity) + (mask.g * (1 - opacity))
-    rgb.b = (@b * opacity) + (mask.b * (1 - opacity))
-
-    rgb
+    Color.new(
+      (@r * opacity) + (mask.r * (1 - opacity)),
+      (@g * opacity) + (mask.g * (1 - opacity)),
+      (@b * opacity) + (mask.b * (1 - opacity)),
+      @a
+    )
   end
 
   def with_a(a)
@@ -66,6 +73,7 @@ class Color
   RED = Color.new(128, 0, 0)
   GREEN = Color.new(0, 255, 0)
   STEEL_BLUE = Color.new(70, 130, 180)
+  BLUE = Color.new(0, 0, 255)
   FUCHSIA = Color.new(255, 0, 255)
 
   TRANSPARENT = Color.new(0, 0, 0, 0)

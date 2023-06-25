@@ -74,4 +74,12 @@ module Easing
 
     x
   end
+
+  def ease_in_out_parabolic(pos, dur)
+    x = pos / dur.to_f
+    return 0 if x <= 0
+    return 1 if x >= 1
+
+    4 * x * x - 4 * x + 1
+  end
 end

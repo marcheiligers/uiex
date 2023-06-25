@@ -30,6 +30,7 @@ require 'app/global_keyboard_manager.rb'
 require 'app/ui_sound_manager.rb'
 
 # require 'app/tick.rb'
-require 'app/maker.rb'
+# require 'app/maker.rb'
+require 'app/circles.rb'
 
 $gtk.reset
