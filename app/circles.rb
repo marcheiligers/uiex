@@ -1,69 +1,117 @@
 BG = [0, 0, 0].freeze
+ITER = 200 # 640
+
+# def tick args
+#   args.outputs.background_color = BG
+
+#   if args.tick_count == 0
+#     args.state.circles = []
+#   end
+
+#   if args.tick_count == 10
+#     args.state.start_time = Time.now
+
+#     # args.state.circles = ITER.times.map do |i|
+#     #   circle(radius: i * 3, x: 50 + i * 6, y: 360, r: i * 2, g: i, b: 255 - i * 2)
+#     # end
+
+#     # args.state.circles = ITER.times.map do |i|
+#     #   circle(radius: ITER * 3 - i * 3, arc_angle: 75)
+#     # end + ITER.idiv(4).times.map do |i|
+#     #   circle(radius: ITER * 2 - i * 8, thickness: 2, arc_angle: 265, angle: 85)
+#     # end
+
+#     args.state.circles = ITER.times.map do |i|
+#       circle(radius: ITER * 2 - i * 2)
+#     end
+
+#     args.state.time_spent = Time.now - args.state.start_time
+#   end
+
+#   if args.tick_count == 11
+#     args.state.frame_time = Time.now - args.state.start_time
+#   end
+
+#   i = -1
+#   cs = args.state.circles
+#   l = cs.length
+#   tc = args.tick_count
+#   x = args.inputs.mouse.x
+#   y = args.inputs.mouse.y
+#   while (i += 1) < l
+#     c = cs[i]
+#     c.x = x
+#     c.y = y
+#     c.r = (tc + i) % 255
+#     c.g = (tc + i + 85) % 255
+#     c.b = (tc + i + 170) % 255
+#   end
+
+#   args.outputs.primitives << [
+#     args.state.circles,
+#     { x: 10, y: 700, text: "#{$state.rt_cache.length} took #{$state.time_spent} frame #{$state.frame_time}, #{args.gtk.current_framerate.round} fps" }.label!(Color::WHITE),
+#     { x: 10, y: 670, x2: 1270, y2: 670, cap: :round, thickness: 3 }.stroke!(Color::WHITE),
+#   ]
+
+#   puts "$state.rt_cache #{$state.rt_cache.keys.join(', ')}" if args.inputs.keyboard.key_down.z
+# end
 
 def tick args
   args.outputs.background_color = BG
 
   if args.tick_count == 0
-    start_time = Time.now
-    args.state.circles = 125.times.map do |i|
-      circle(radius: i * 3, x: 50 + i * 6, y: 360, r: i * 2, g: i, b: 255 - i * 2)
-    end
-    args.state.time_spent = Time.now - start_time
+    args.state.circles = []
   end
 
-  args.outputs.primitives << [
-    { x: 10, y: 700, text: "#{$state.rt_cache.length} took #{$state.time_spent}, #{args.gtk.current_framerate.round} fps" }.label!(Color::WHITE),
-    { x: 10, y: 670, x2: 1270, y2: 670, cap: :round, thickness: 8 }.stroke!(Color::WHITE),
-    args.state.circles
-  ]
+  args.state.circles << circle(radius: rand(100) + 100, thickness: rand(100), x: rand(1280), y: rand(720), r: rand(255), g:  rand(255), b: rand(255), a: rand(255))
 
-  # args.outputs.primitives << [
-  #   args.state.circle1,
-  #   args.state.circle2,
-  #   { x: 10, y: 700, text: "#{$state.rt_cache.length}" }.label!(Color::WHITE),
-  #   { radius: 100, x: 310, y: 100 }.circle!(Color::GREEN),
-  #   { radius: 100, x: 520, y: 100, arc_angle: 300, angle: 30 }.circle!(Color::BLUE),
-  #   { radius: 6, x: 640, y: 360 }.circle!(Color::STEEL_BLUE),
-  #   { radius: 15, x: 700, y: 360 }.circle!(Color::LIGHT_GREY),
-  #   { radius: 100, thickness: 20, x: 1000, y: 360 }.circle!(Color::STEEL_BLUE),
-  #   { radius: 60, thickness: 12, arc_angle: 320, x: 1000, y: 360 }.circle!(Color::STEEL_BLUE),
-  #   { x: 20, y: 200, x2: 300, y2: 300, thickness: 12, cap: :round }.stroke!(Color::WHITE),
-  #   { x: 20, y: 240, x2: 300, y2: 340, thickness: 12, cap: :butt }.stroke!(Color::WHITE),
-  #   { x: 650, y: 690, x2: 1100, y2: 690, thickness: 30, cap: :round }.stroke!(Color::LIGHT_GREY),
-  # ]
+  args.outputs.primitives << [
+    args.state.circles,
+    { x: 10, y: 700, text: "#{$state.circles.length} circles, #{$state.rt_cache.length} render targets, #{args.gtk.current_framerate.round} fps" }.label!(Color::WHITE),
+    { x: 10, y: 670, x2: 1270, y2: 670, cap: :round, thickness: 3 }.stroke!(Color::WHITE),
+  ]
 
   puts "$state.rt_cache #{$state.rt_cache.keys.join(', ')}" if args.inputs.keyboard.key_down.z
 end
 
-class RenderTargetSprite
+class Sprite
   include Serializable
   attr_sprite
 
-  def initialize(**args)
-    @x = args.fetch(:x, 0)
-    @y = args.fetch(:y, 0)
-    @w = args.fetch(:w, 0)
-    @h = args.fetch(:h, 0)
+  def initialize(**params)
+    @x = params[:x] || 0
+    @y = params[:y] || 0
+    @w = params[:w] || 0
+    @h = params[:h] || 0
 
-    @path = args.fetch(:path, nil)
-    raise ArgumentError, 'RenderTargetSprite must have a path' if @path.nil?
+    @path = params[:path] || :pixel
 
-    @r = args.fetch(:r, 255)
-    @g = args.fetch(:g, 255)
-    @b = args.fetch(:b, 255)
-    @a = args.fetch(:a, 255)
+    @r = params[:r] || 255
+    @g = params[:g] || 255
+    @b = params[:b] || 255
+    @a = params[:a] || 255
 
-    @angle = args.fetch(:angle, 0)
-    @angle_anchor_x = args.fetch(:angle_anchor_x, 0.5)
-    @angle_anchor_y = args.fetch(:angle_anchor_y, 0.5)
+    @angle = params[:angle] || 0
+    @angle_anchor_x = params[:angle_anchor_x] || 0.5
+    @angle_anchor_y = params[:angle_anchor_y] || 0.5
 
-    @flip_horizontally = args.fetch(:flip_horizontally, false)
-    @flip_vertically = args.fetch(:flip_vertically, false)
+    @flip_horizontally = params[:flip_horizontally] || false
+    @flip_vertically = params[:flip_vertically] || false
 
-    @blendmode_enum = args.fetch(:blendmode_enum, 1)
+    @tile_x = params[:tile_x] || nil
+    @tile_y = params[:tile_y] || nil
+    @tile_w = params[:tile_w] || nil
+    @tile_h = params[:tile_h] || nil
 
-    @anchor_x = args.fetch(:anchor_x, 0)
-    @anchor_y = args.fetch(:anchor_y, 0)
+    @source_x = params[:source_x] || nil
+    @source_y = params[:source_y] || nil
+    @source_w = params[:source_w] || nil
+    @source_h = params[:source_h] || nil
+
+    @blendmode_enum = params[:blendmode_enum] || 1
+
+    @anchor_x = params[:anchor_x] || 0
+    @anchor_y = params[:anchor_y] || 0
   end
 
   def draw_override(ffi)
@@ -72,13 +120,12 @@ class RenderTargetSprite
       @path,
       @angle,
       @a, @r, @g, @b,
-      0, 0, -1, -1,
+      @tile_x, @tile_y, @tile_w, @tile_h,
       @flip_horizontally, @flip_vertically,
       @angle_anchor_x, @angle_anchor_y,
-      nil, nil, nil, nil,
+      @source_x, @source_y, @source_w, @source_h,
       @blendmode_enum,
-      @anchor_x,
-      @anchor_y
+      @anchor_x, @anchor_y
     )
   end
 end
@@ -97,101 +144,144 @@ class LambdaRenderer
   end
 end
 
-def circle(**args)
-  radius = args.fetch(:radius, 10)
-  arc_angle = args.fetch(:arc_angle, 360)
-  thickness = args.fetch(:thickness, radius)
-  path = "circle:#{radius}:#{arc_angle}:#{thickness}"
-  rt_args = $state.rt_cache[path]
-  return RenderTargetSprite.new(args.merge(rt_args)) if rt_args
+module Shapes
+  def circle(**params)
+    radius = params[:radius] || 10
+    arc_angle = params[:arc_angle] || 360
+    thickness = params[:thickness] || radius
+    path = "circle:#{radius}:#{arc_angle}:#{thickness}"
+    rt_params = $state.rt_cache[path]
+    return Sprite.new(params.merge(rt_params)) if rt_params
 
-  rt = $args.render_target(path)
-  rt_args = {
-    anchor_x: 0.5,
-    anchor_y: 0.5,
-    path: path,
-    w: rt.w = radius * 2,
-    h: rt.h = radius * 2
-  }
+    rt = $args.render_target(path)
+    rt_params = {
+      anchor_x: 0.5,
+      anchor_y: 0.5,
+      path: path,
+      w: rt.w = radius * 2,
+      h: rt.h = radius * 2
+    }
 
-  theta = 360 / (2 * Math::PI * radius)
-  steps = (arc_angle / theta).ceil
-  inner_radius = radius - thickness
+    theta = 360 / (2 * Math::PI * radius)
+    inner_radius = 0.greater(radius - thickness)
+    if arc_angle == 360
+      steps = (arc_angle / theta / 8.0).ceil + 1 # 1/8 as many steps
 
-  # rt.primitives << steps.times.map do |i|
-  #   segment_angle = [i * theta, arc_angle].min
+      if inner_radius == 0
+        rt.primitives << LambdaRenderer.new do |ffi|
+          i = -1
+          while (i += 1) < steps
+            segment_angle = i * theta
+            x = radius * segment_angle.cos
+            y = radius * segment_angle.sin
 
-  #   {
-  #     x: radius + radius * segment_angle.cos,
-  #     y: radius + radius * segment_angle.sin,
-  #     x2: radius + inner_radius * segment_angle.cos,
-  #     y2: radius + inner_radius * segment_angle.sin
-  #   }.line!(Color::WHITE)
-  # end
+            ffi.draw_line(radius + x, radius + y, radius, radius, 255, 255, 255, 255)
+            ffi.draw_line(radius - x, radius + y, radius, radius, 255, 255, 255, 255)
+            ffi.draw_line(radius + x, radius - y, radius, radius, 255, 255, 255, 255)
+            ffi.draw_line(radius - x, radius - y, radius, radius, 255, 255, 255, 255)
 
-  rt.primitives << LambdaRenderer.new do |ffi|
-    steps.times.map do |i|
-      segment_angle = [i * theta, arc_angle].min
+            ffi.draw_line(radius + y, radius + x, radius, radius, 255, 255, 255, 255)
+            ffi.draw_line(radius - y, radius + x, radius, radius, 255, 255, 255, 255)
+            ffi.draw_line(radius + y, radius - x, radius, radius, 255, 255, 255, 255)
+            ffi.draw_line(radius - y, radius - x, radius, radius, 255, 255, 255, 255)
+          end
+        end
+      else
+        rt.primitives << LambdaRenderer.new do |ffi|
+          i = -1
+          while (i += 1) < steps
+            segment_angle = i * theta
+            c = segment_angle.cos
+            s = segment_angle.sin
+            x = radius * c
+            y = radius * s
+            ix = inner_radius * c
+            iy = inner_radius * s
 
-      ffi.draw_line(
-        radius + radius * segment_angle.cos,
-        radius + radius * segment_angle.sin,
-        radius + inner_radius * segment_angle.cos,
-        radius + inner_radius * segment_angle.sin,
-        *Color::WHITE.to_a
-      )
+            ffi.draw_line(radius + x, radius + y, radius + ix, radius + iy, 255, 255, 255, 255)
+            ffi.draw_line(radius - x, radius + y, radius - ix, radius + iy, 255, 255, 255, 255)
+            ffi.draw_line(radius + x, radius - y, radius + ix, radius - iy, 255, 255, 255, 255)
+            ffi.draw_line(radius - x, radius - y, radius - ix, radius - iy, 255, 255, 255, 255)
+
+            ffi.draw_line(radius + y, radius + x, radius + iy, radius + ix, 255, 255, 255, 255)
+            ffi.draw_line(radius - y, radius + x, radius - iy, radius + ix, 255, 255, 255, 255)
+            ffi.draw_line(radius + y, radius - x, radius + iy, radius - ix, 255, 255, 255, 255)
+            ffi.draw_line(radius - y, radius - x, radius - iy, radius - ix, 255, 255, 255, 255)
+          end
+        end
+      end
+    else
+      steps = (arc_angle / theta).ceil
+
+      rt.primitives << LambdaRenderer.new do |ffi|
+        i = -1
+        while (i += 1) < steps
+          segment_angle = arc_angle.lesser(i * theta)
+          c = segment_angle.cos
+          s = segment_angle.sin
+
+          ffi.draw_line(
+            radius + radius * c, radius + radius * s,
+            radius + inner_radius * c, radius + inner_radius * s,
+            255, 255, 255, 255
+          )
+        end
+      end
     end
+
+    $state.rt_cache[path] = rt_params
+
+    Sprite.new(params.merge(rt_params))
   end
 
-  $state.rt_cache[path] = rt_args
+  def stroke(**params)
+    thickness = params[:thickness] || 1
+    cap = params[:cap] || :butt
 
-  RenderTargetSprite.new(args.merge(rt_args))
+    x = params[:x] || 1
+    y = params[:y] || 1
+    x2 = params[:x2] || 1
+    y2 = params[:y2] || 1
+
+    l2 = (x2 - x)**2 + (y2 - y)**2
+    path = "line:#{l2}:#{cap}:#{thickness}"
+    rt_params = $state.rt_cache[path]
+    return Sprite.new(params.merge(rt_params)) if rt_params
+
+    length = Math.sqrt(l2)
+    half_t = thickness / 2.0
+    circle(radius: half_t) # ensure a circle exists for the end-cap
+
+    rt = $args.render_target(path)
+    rt_params = {
+      x: x - (cap == :round ? half_t : 0),
+      y: y - half_t,
+      w: rt.w = cap == :round ? length + thickness : length,
+      h: rt.h = thickness,
+      path: path,
+      angle: Math.atan2(y2 - y, x2 - x).to_degrees,
+      angle_anchor_x: cap == :round ? half_t / length : 0,
+      angle_anchor_y: 0.5
+    }
+
+    rt.primitives << case cap
+                     when :round then
+                      [
+                        circle(x: half_t, y: half_t, radius: half_t),
+                        { x: half_t, y: 0, w: length, h: thickness }.solid!(Color::WHITE),
+                        circle(x: length + half_t, y: half_t, radius: half_t)
+                      ]
+                     else
+                      { x: 0, y: 0, w: length, h: thickness }.solid!(Color::WHITE)
+                     end
+
+    $state.rt_cache[path] = rt_params
+
+    Sprite.new(params.merge(rt_params))
+  end
 end
 
-def stroke(**args)
-  thickness = args.fetch(:thickness, 1)
-  cap = args.fetch(:cap, :butt)
-
-  x = args.fetch(:x, 1)
-  y = args.fetch(:y, 1)
-  x2 = args.fetch(:x2, 1)
-  y2 = args.fetch(:y2, 1)
-  l2 = (x2 - x)**2 + (y2 - y)**2
-  path = "line:#{l2}:#{cap}:#{thickness}"
-  rt_args = $state.rt_cache[path]
-  return RenderTargetSprite.new(args.merge(rt_args)) if rt_args
-
-  length = Math.sqrt(l2)
-  half_t = thickness / 2
-  circle(radius: half_t) # ensure a circle exists for the end-cap
-
-  rt = $args.render_target(path)
-  rt_args = {
-    x: x - (cap == :round ? half_t : 0),
-    y: y - half_t,
-    w: rt.w = cap == :round ? length + thickness : length,
-    h: rt.h = thickness,
-    path: path,
-    angle: Math.atan2(y2 - y, x2 - x).to_degrees,
-    angle_anchor_x: cap == :round ? half_t / length : 0,
-    angle_anchor_y: 0.5
-  }
-
-  rt.primitives << case cap
-                   when :round then
-                    [
-                      circle(x: half_t, y: half_t, radius: half_t),
-                      { x: half_t, y: 0, w: length, h: thickness }.solid!(Color::WHITE),
-                      circle(x: length + half_t, y: half_t, radius: half_t)
-                    ]
-                   else
-                    { x: 0, y: 0, w: length, h: thickness }.solid!(Color::WHITE)
-                   end
-
-  $state.rt_cache[path] = rt_args
-
-  RenderTargetSprite.new(args.merge(rt_args))
-end
+include Shapes
 
 module CachedRenderTargetResetExtension
   def reset(*args)
@@ -201,13 +291,15 @@ module CachedRenderTargetResetExtension
 end
 
 class Hash
-  def circle!(p)
-    a = p.is_a?(Hash) ? p : p.as_hash
+  include Shapes
+
+  def circle!(params)
+    a = params.is_a?(Hash) ? params : params.as_hash
     circle(merge(a))
   end
 
-  def stroke!(p)
-    a = p.is_a?(Hash) ? p : p.as_hash
+  def stroke!(params)
+    a = params.is_a?(Hash) ? params : params.as_hash
     stroke(merge(a))
   end
 end
