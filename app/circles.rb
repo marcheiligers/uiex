@@ -4,24 +4,33 @@ def tick args
   args.outputs.background_color = BG
 
   if args.tick_count == 0
-    args.state.circle1 = circle(radius: 100, x: 100, y: 100, r: 255, g: 0, b: 0)
-    args.state.circle2 = circle(radius: 50, x: 300, y: 500, arc_angle: 300, r: 255, g: 0, b: 255)
+    start_time = Time.now
+    args.state.circles = 125.times.map do |i|
+      circle(radius: i * 3, x: 50 + i * 6, y: 360, r: i * 2, g: i, b: 255 - i * 2)
+    end
+    args.state.time_spent = Time.now - start_time
   end
 
   args.outputs.primitives << [
-    args.state.circle1,
-    args.state.circle2,
-    { x: 10, y: 700, text: "#{$state.rt_cache.length}" }.label!(Color::WHITE),
-    { radius: 100, x: 310, y: 100 }.circle!(Color::GREEN),
-    { radius: 100, x: 520, y: 100, arc_angle: 300, angle: 30 }.circle!(Color::BLUE),
-    { radius: 6, x: 640, y: 360 }.circle!(Color::STEEL_BLUE),
-    { radius: 15, x: 700, y: 360 }.circle!(Color::LIGHT_GREY),
-    { radius: 100, thickness: 20, x: 1000, y: 360 }.circle!(Color::STEEL_BLUE),
-    { radius: 60, thickness: 12, arc_angle: 320, x: 1000, y: 360 }.circle!(Color::STEEL_BLUE),
-    { x: 20, y: 200, x2: 300, y2: 300, thickness: 12, cap: :round }.stroke!(Color::WHITE),
-    { x: 20, y: 240, x2: 300, y2: 340, thickness: 12, cap: :butt }.stroke!(Color::WHITE),
-    { x: 650, y: 690, x2: 1100, y2: 690, thickness: 30, cap: :round }.stroke!(Color::LIGHT_GREY),
+    { x: 10, y: 700, text: "#{$state.rt_cache.length} took #{$state.time_spent}, #{args.gtk.current_framerate.round} fps" }.label!(Color::WHITE),
+    { x: 10, y: 670, x2: 1270, y2: 670, cap: :round, thickness: 8 }.stroke!(Color::WHITE),
+    args.state.circles
   ]
+
+  # args.outputs.primitives << [
+  #   args.state.circle1,
+  #   args.state.circle2,
+  #   { x: 10, y: 700, text: "#{$state.rt_cache.length}" }.label!(Color::WHITE),
+  #   { radius: 100, x: 310, y: 100 }.circle!(Color::GREEN),
+  #   { radius: 100, x: 520, y: 100, arc_angle: 300, angle: 30 }.circle!(Color::BLUE),
+  #   { radius: 6, x: 640, y: 360 }.circle!(Color::STEEL_BLUE),
+  #   { radius: 15, x: 700, y: 360 }.circle!(Color::LIGHT_GREY),
+  #   { radius: 100, thickness: 20, x: 1000, y: 360 }.circle!(Color::STEEL_BLUE),
+  #   { radius: 60, thickness: 12, arc_angle: 320, x: 1000, y: 360 }.circle!(Color::STEEL_BLUE),
+  #   { x: 20, y: 200, x2: 300, y2: 300, thickness: 12, cap: :round }.stroke!(Color::WHITE),
+  #   { x: 20, y: 240, x2: 300, y2: 340, thickness: 12, cap: :butt }.stroke!(Color::WHITE),
+  #   { x: 650, y: 690, x2: 1100, y2: 690, thickness: 30, cap: :round }.stroke!(Color::LIGHT_GREY),
+  # ]
 
   puts "$state.rt_cache #{$state.rt_cache.keys.join(', ')}" if args.inputs.keyboard.key_down.z
 end
@@ -74,6 +83,20 @@ class RenderTargetSprite
   end
 end
 
+class LambdaRenderer
+  def initialize(draw_lambda = nil, &draw_block)
+    @draw_lambda = draw_lambda || draw_block
+  end
+
+  def draw_override(ffi)
+    @draw_lambda.call(ffi)
+  end
+
+  def primitive_marker
+    :sprite
+  end
+end
+
 def circle(**args)
   radius = args.fetch(:radius, 10)
   arc_angle = args.fetch(:arc_angle, 360)
@@ -95,15 +118,29 @@ def circle(**args)
   steps = (arc_angle / theta).ceil
   inner_radius = radius - thickness
 
-  rt.primitives << steps.times.map do |i|
-    segment_angle = [i * theta, arc_angle].min
+  # rt.primitives << steps.times.map do |i|
+  #   segment_angle = [i * theta, arc_angle].min
 
-    {
-      x: radius + radius * segment_angle.cos,
-      y: radius + radius * segment_angle.sin,
-      x2: radius + inner_radius * segment_angle.cos,
-      y2: radius + inner_radius * segment_angle.sin
-    }.line!(Color::WHITE)
+  #   {
+  #     x: radius + radius * segment_angle.cos,
+  #     y: radius + radius * segment_angle.sin,
+  #     x2: radius + inner_radius * segment_angle.cos,
+  #     y2: radius + inner_radius * segment_angle.sin
+  #   }.line!(Color::WHITE)
+  # end
+
+  rt.primitives << LambdaRenderer.new do |ffi|
+    steps.times.map do |i|
+      segment_angle = [i * theta, arc_angle].min
+
+      ffi.draw_line(
+        radius + radius * segment_angle.cos,
+        radius + radius * segment_angle.sin,
+        radius + inner_radius * segment_angle.cos,
+        radius + inner_radius * segment_angle.sin,
+        *Color::WHITE.to_a
+      )
+    end
   end
 
   $state.rt_cache[path] = rt_args
@@ -130,7 +167,7 @@ def stroke(**args)
 
   rt = $args.render_target(path)
   rt_args = {
-    x: x + (cap == :round ? half_t : 0),
+    x: x - (cap == :round ? half_t : 0),
     y: y - half_t,
     w: rt.w = cap == :round ? length + thickness : length,
     h: rt.h = thickness,

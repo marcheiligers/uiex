@@ -29,6 +29,10 @@ class Color
     as_hash.values.join('-')
   end
 
+  def to_a
+    [@r, @g, @b, @a]
+  end
+
   def dup
     Color.new(@r, @g, @b, @a)
   end
