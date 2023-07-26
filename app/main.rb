@@ -10,6 +10,8 @@ require 'lib/concerns/input_helpers.rb'
 require 'lib/concerns/cached_rt.rb'
 require 'lib/concerns/layouts.rb'
 
+require 'lib/shapes.rb'
+
 require 'lib/decorators/glow.rb'
 require 'lib/decorators/smoke.rb'
 
@@ -31,6 +33,7 @@ require 'app/ui_sound_manager.rb'
 
 # require 'app/tick.rb'
 # require 'app/maker.rb'
-require 'app/circles.rb'
+# require 'app/circles.rb'
+require 'app/tower.rb'
 
 $gtk.reset

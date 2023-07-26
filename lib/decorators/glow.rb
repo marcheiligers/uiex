@@ -13,7 +13,7 @@ class LineGlow
 
     prepare
 
-    @cur_index = 0
+    @rt_index = 0
     @cur_pos = 0
 
     @color = @line.color
@@ -21,13 +21,13 @@ class LineGlow
   end
 
   def to_primitives
-    rt1 = @rts[@cur_index]
-    rt2 = @rts[(@cur_index + 1) % @rts.length]
+    rt1 = @rts[@rt_index]
+    rt2 = @rts[(@rt_index + 1) % @rts.length]
     a = ease_in_linear(@cur_pos += 1, EASE_DUR) * 255
     if @cur_pos == EASE_DUR
       @cur_pos = 0
-      @cur_index += 1
-      @cur_index = 0 if @cur_index >= @rts.length
+      @rt_index += 1
+      @rt_index = 0 if @rt_index >= @rts.length
     end
 
     col = @color.as_rgb_hash
@@ -129,4 +129,30 @@ def glow_along_track(track)
 end
 
 def alpha_glow_along_track(range, path, alpha, chance)
+end
+
+
+class Fader < Sprite
+  def initialize(sprites)
+    @sprites = sprites
+    @sprite_index = 0
+    @cur_pos = 0
+    @duration = 40
+  end
+
+  def draw_override(ffi)
+    sprite1 = @sprites[@sprite_index]
+    sprite2 = @sprites[(@sprite_index + 1) % @sprites.length]
+    a = ease_in_linear(@cur_pos += 1, EASE_DUR) * 255
+    if @cur_pos == EASE_DUR
+      @cur_pos = 0
+      @sprite_index += 1
+      @sprite_index = 0 if @sprite_index >= @sprites.length
+    end
+
+    sprite1.a = 255 - a
+    sprite2.a = a
+    sprite1.draw_override(ffi)
+    sprite2.draw_override(ffi)
+  end
 end
